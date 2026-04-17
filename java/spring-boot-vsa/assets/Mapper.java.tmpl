@@ -1,0 +1,38 @@
+package {{BasePackage}}.features.{{feature}}.model;
+
+import {{BasePackage}}.features.{{feature}}.api.request.Create{{Feature}}Request;
+import {{BasePackage}}.features.{{feature}}.api.request.Update{{Feature}}Request;
+import {{BasePackage}}.features.{{feature}}.api.response.{{Feature}}Response;
+import org.springframework.stereotype.Component;
+
+/**
+ * Translates between {@link {{Feature}}} entities and DTO records.
+ *
+ * <p>Entities never cross the HTTP boundary. Every handler that returns
+ * to the controller maps to a response record through this class.
+ */
+@Component
+public class {{Feature}}Mapper {
+
+    public {{Feature}} toEntity(Create{{Feature}}Request request) {
+        return {{Feature}}.builder()
+                .name(request.name())
+                // TODO: map remaining fields from the request record
+                .build();
+    }
+
+    public void applyUpdate({{Feature}} entity, Update{{Feature}}Request request) {
+        entity.setName(request.name());
+        // TODO: apply remaining updates from the request record to the entity
+    }
+
+    public {{Feature}}Response toResponse({{Feature}} entity) {
+        return new {{Feature}}Response(
+                entity.getId(),
+                entity.getName(),
+                // TODO: map remaining fields to the response record
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
+        );
+    }
+}

@@ -1,0 +1,19 @@
+package {{BasePackage}}.features.{{feature}}.exception;
+
+/**
+ * Thrown when a {{Feature}} cannot be found by the given identifier.
+ *
+ * <p>Mapped to HTTP 404 by {@code GlobalExceptionHandler} in {@code shared/exception/}.
+ * If your project uses a common {@code EntityNotFoundException} base class, extend that instead
+ * of {@link RuntimeException} so the global handler can treat all not-found cases uniformly.
+ */
+public class {{Feature}}NotFoundException extends RuntimeException {
+
+    public {{Feature}}NotFoundException(Long id) {
+        super("{{Feature}} not found: id=" + id);
+    }
+
+    public {{Feature}}NotFoundException(String message) {
+        super(message);
+    }
+}
