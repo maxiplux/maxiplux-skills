@@ -1,0 +1,32 @@
+package {{BasePackage}}.features.{{feature}}.handlers;
+
+import {{BasePackage}}.features.{{feature}}.api.response.{{Feature}}Response;
+import {{BasePackage}}.features.{{feature}}.model.{{Feature}}Mapper;
+import {{BasePackage}}.features.{{feature}}.model.{{Feature}}Repository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Handler for the "list {{feature}}s" use case.
+ *
+ * <p>Returns a {@link Page} — never an unbounded {@code List}.
+ * Read-only transaction signals JPA to skip dirty-checking overhead.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class List{{Feature}}Handler {
+
+    private final {{Feature}}Repository {{feature}}Repository;
+    private final {{Feature}}Mapper {{feature}}Mapper;
+
+    @Transactional(readOnly = true)
+    public Page<{{Feature}}Response> handle(Pageable pageable) {
+        return {{feature}}Repository.findAll(pageable)
+                .map({{feature}}Mapper::toResponse);
+    }
+}

@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+#
+# Install the spring-boot-ai and spring-boot-vsa Claude Code skills.
+#
+#   ./install.sh --personal                    # ~/.claude/skills/<skill>/
+#   ./install.sh --project /path/to/proj       # <proj>/.claude/skills/<skill>/
+#   ./install.sh --skill spring-boot-vsa --personal
+#   ./install.sh --personal --force            # overwrite without asking
+#
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ALL_SKILLS=(spring-boot-ai spring-boot-vsa)
+
+scope=""        # "personal" | "project"
+project_path="" # only used when scope=project
+skills=()       # subset of ALL_SKILLS
+force=0
+
+usage() {
+  cat <<EOF
+Install spring-boot-ai and spring-boot-vsa Claude Code skills.
+
+Usage:
+  $0 --personal [--skill NAME] [--force]
+  $0 --project PATH [--skill NAME] [--force]
+  $0                    # interactive
+
+Options:
+  --personal            Install to \$HOME/.claude/skills/
+  --project PATH        Install to PATH/.claude/skills/
+  --skill NAME          Only install one skill (spring-boot-ai|spring-boot-vsa).
+                        Repeat for multiple. Default: both.
+  --force               Overwrite existing target dirs without prompting.
+  -h, --help            Show this help.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --personal)        scope="personal"; shift ;;
+    --project)         scope="project"; project_path="${2:-}"; shift 2 ;;
+    --skill)           skills+=("$2"); shift 2 ;;
+    --force)           force=1; shift ;;
+    -h|--help)         usage; exit 0 ;;
+    *)                 echo "Unknown argument: $1" >&2; usage; exit 1 ;;
+  esac
+done
+
+if [[ -z "$scope" ]]; then
+  echo "Where should the skills be installed?"
+  select choice in "Personal (all projects)" "This/another project"; do
+    case "$REPLY" in
+      1) scope="personal"; break ;;
+      2) scope="project"; break ;;
+    esac
+  done
+fi
+
+if [[ "$scope" == "project" && -z "$project_path" ]]; then
+  read -r -p "Project path [.]: " project_path
+  project_path="${project_path:-.}"
+fi
+
+case "$scope" in
+  personal) target_root="${HOME}/.claude/skills" ;;
+  project)  target_root="${project_path%/}/.claude/skills" ;;
+  *)        echo "Internal error: invalid scope '$scope'" >&2; exit 1 ;;
+esac
+
+if [[ ${#skills[@]} -eq 0 ]]; then
+  skills=("${ALL_SKILLS[@]}")
+fi
+
+mkdir -p "$target_root"
+
+for skill in "${skills[@]}"; do
+  src="${SCRIPT_DIR}/${skill}"
+  dest="${target_root}/${skill}"
+
+  if [[ ! -d "$src" ]]; then
+    echo "Skipping ${skill}: source dir not found at ${src}" >&2
+    continue
+  fi
+
+  if [[ -e "$dest" ]]; then
+    if [[ $force -eq 0 ]]; then
+      read -r -p "${dest} already exists. Overwrite? [y/N] " ans
+      case "$ans" in [yY]|[yY][eE][sS]) ;; *) echo "  -> skipped"; continue ;; esac
+    fi
+    rm -rf "$dest"
+  fi
+
+  cp -R "$src" "$dest"
+  echo "Installed ${skill} -> ${dest}"
+done
+
+echo
+echo "Done. Open Claude Code in any Spring Boot project and try:"
+echo '  - "scaffold a new payment feature slice"   (triggers spring-boot-vsa)'
+echo '  - "how do I parse this LLM JSON into a Java record"   (triggers spring-boot-ai)'

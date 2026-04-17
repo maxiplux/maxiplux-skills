@@ -1,0 +1,31 @@
+package {{BasePackage}}.features.{{feature}}.handlers;
+
+import {{BasePackage}}.features.{{feature}}.exception.{{Feature}}NotFoundException;
+import {{BasePackage}}.features.{{feature}}.model.{{Feature}}Repository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Handler for the "delete {{feature}}" use case.
+ *
+ * <p>Existence check is explicit so callers get a 404 rather than a silent no-op
+ * when the id does not exist.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class Delete{{Feature}}Handler {
+
+    private final {{Feature}}Repository {{feature}}Repository;
+
+    @Transactional
+    public void handle(Long id) {
+        if (!{{feature}}Repository.existsById(id)) {
+            throw new {{Feature}}NotFoundException(id);
+        }
+        {{feature}}Repository.deleteById(id);
+        log.info("Deleted {{feature}} id={}", id);
+    }
+}

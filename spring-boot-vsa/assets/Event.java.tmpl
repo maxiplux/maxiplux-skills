@@ -1,0 +1,15 @@
+package {{BasePackage}}.features.{{feature}}.events;
+
+/**
+ * Domain event emitted when a significant {{Feature}} state change occurs.
+ *
+ * <p>Published via {@code ApplicationEventPublisher} from a handler. Listeners
+ * annotated with {@code @EventListener @Async("taskExecutor")} react asynchronously
+ * so the publishing transaction is not blocked by side effects.
+ *
+ * <p>Events are fire-and-forget — do not rely on them for request/response flow.
+ * Rename this class to reflect the actual action (e.g. {{Feature}}CreatedEvent,
+ * {{Feature}}CompletedEvent, {{Feature}}FailedEvent).
+ */
+public record {{Feature}}ChangedEvent(Long {{feature}}Id) {
+}
