@@ -88,3 +88,6 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\skills\spring-boot-ai", "$
     ├── scripts/         (create_slice.py)
     └── assets/          (14 .java.tmpl templates)
 ```
+
+Extras
+npx skills add https://github.com/mattpocock/skills --skill grill-me
