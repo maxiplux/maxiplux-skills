@@ -90,7 +90,10 @@ public class ExternalGeocoderClient {
 
     @Recover
     public GeocodeResult recover(RestClientException ex, String address) {
-        log.warn("Geocoder unavailable after retries for address='{}': {}", address, ex.getMessage());
+        // This @Recover RETHROWS a domain exception that GlobalExceptionHandler maps to
+        // 503 and logs there — so don't log here, that would double-log the one failure.
+        // (A @Recover that SWALLOWS the failure — returns a fallback GeocodeResult — would
+        //  instead have to log.error locally, since nothing downstream would see it.)
         throw new GeocodingUnavailableException(address, ex);
     }
 
@@ -117,16 +120,38 @@ public class GeocodingUnavailableException extends RuntimeException {
 }
 ```
 
-Mapped to HTTP 503 in `GlobalExceptionHandler`:
+Mapped to HTTP 503 by an **additional `@ExceptionHandler` method on the one shared `GlobalExceptionHandler`** — never a second `@RestControllerAdvice`:
 
 ```java
 @ExceptionHandler(GeocodingUnavailableException.class)
-public ProblemDetail handleGeocodingUnavailable(GeocodingUnavailableException ex) {
+public ProblemDetail handleGeocodingUnavailable(GeocodingUnavailableException ex,
+                                                HttpServletRequest request) {
+    // 5xx: throwable as the last argument.
+    log.error("Upstream geocoder unavailable on {} {}", request.getMethod(), request.getRequestURI(), ex);
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(
             HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    problem.setTitle("Upstream service unavailable");
     problem.setType(URI.create("https://api.example.com/problems/upstream-unavailable"));
+    problem.setInstance(URI.create(request.getRequestURI()));
     return problem;
 }
+```
+
+The controller documents this error status like every other — `application/problem+json` content, `ProblemDetail` schema, and a realistic example:
+
+```java
+@ApiResponse(responseCode = "503", description = "Geocoding provider unavailable",
+        content = @Content(mediaType = "application/problem+json",
+                schema = @Schema(implementation = ProblemDetail.class),
+                examples = @ExampleObject(name = "upstream-unavailable", value = """
+                        {
+                          "type": "https://api.example.com/problems/upstream-unavailable",
+                          "title": "Upstream service unavailable",
+                          "status": 503,
+                          "detail": "Geocoding service unavailable for address: 1600 Amphitheatre Parkway",
+                          "instance": "/api/v1/geocoding"
+                        }
+                        """)))
 ```
 
 ## Step 4 — the handler uses the client
@@ -141,7 +166,6 @@ import com.acme.places.features.geocoding.client.ExternalGeocoderClient.GeocodeR
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -150,7 +174,6 @@ public class GeocodeAddressHandler {
 
     private final ExternalGeocoderClient geocoderClient;
 
-    @Transactional(readOnly = true)
     public GeocodeResponse handle(GeocodeAddressRequest request) {
         GeocodeResult result = geocoderClient.geocode(request.address());
         log.info("Geocoded address='{}' -> lat={} lon={}",
@@ -160,7 +183,45 @@ public class GeocodeAddressHandler {
 }
 ```
 
-The handler is trivial — it delegates to the client and maps to the response record. Retry logic, fallbacks, and recovery are all inside the client where they belong.
+The handler is trivial — it delegates to the client and maps to the response record. Retry logic, fallbacks, and recovery are all inside the client where they belong. Note there is **no `@Transactional`** here: this handler touches no database, and a read-only transaction around a pure external HTTP call just borrows a DB connection for nothing. Add `@Transactional(readOnly = true)` only to handlers that actually query the persistence layer.
+
+## Request/response records — examples on every field
+
+```java
+package com.acme.places.features.geocoding.api.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+
+public record GeocodeAddressRequest(
+
+        @NotBlank
+        @Schema(description = "Free-form street address", example = "1600 Amphitheatre Parkway, Mountain View, CA",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        String address
+) {
+}
+```
+
+```java
+package com.acme.places.features.geocoding.api.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Resolved coordinates for an address")
+public record GeocodeResponse(
+
+        @Schema(description = "Latitude (WGS-84)", example = "37.4224764")
+        Double latitude,
+
+        @Schema(description = "Longitude (WGS-84)", example = "-122.0842499")
+        Double longitude,
+
+        @Schema(description = "True when coordinates come from a fallback source", example = "false")
+        boolean fallback
+) {
+}
+```
 
 ## Multi-provider fallback (primary + fallback + basic)
 
@@ -171,11 +232,11 @@ public EvaluationResult evaluate(String input) {
     try {
         return primaryProvider.evaluate(input);   // e.g. Gemini
     } catch (Exception primaryEx) {
-        log.warn("Primary provider failed, trying fallback: {}", primaryEx.getMessage());
+        log.error("Primary provider failed, trying fallback", primaryEx);
         try {
             return fallbackProvider.evaluate(input); // e.g. Claude
         } catch (Exception fallbackEx) {
-            log.warn("Fallback provider failed, using basic: {}", fallbackEx.getMessage());
+            log.error("Fallback provider failed, using basic heuristic", fallbackEx);
             return basicHeuristic(input);           // deterministic, always works
         }
     }

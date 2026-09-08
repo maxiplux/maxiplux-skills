@@ -13,18 +13,19 @@ import java.time.Instant;
 @Schema(description = "Representation of a {{Feature}} returned by the API")
 public record {{Feature}}Response(
 
-        @Schema(description = "Unique identifier")
+        @Schema(description = "Unique identifier", example = "1")
         Long id,
 
-        @Schema(description = "Display name")
+        @Schema(description = "Display name", example = "Example name")
         String name,
 
-        // TODO: add remaining fields exposed to API clients
+        // TODO: add remaining fields exposed to API clients — every field carries
+        //       @Schema(description = ..., example = ...)
 
-        @Schema(description = "Creation timestamp (UTC)")
+        @Schema(description = "Creation timestamp (UTC)", example = "2026-07-17T09:30:00Z")
         Instant createdAt,
 
-        @Schema(description = "Last-update timestamp (UTC)")
+        @Schema(description = "Last-update timestamp (UTC)", example = "2026-07-17T10:15:00Z")
         Instant updatedAt
 ) {
 }

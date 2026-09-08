@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Structured logging configuration, scaffolded by init_shared.py with JSON logging enabled.
+
+  Requires the dependency net.logstash.logback:logstash-logback-encoder (see the
+  build snippet printed by init_shared.py, or references/shared-and-logging.md).
+
+  Activate JSON output with the 'json-logging' Spring profile, e.g.
+      SPRING_PROFILES_ACTIVE=json-logging
+
+  MDC keys requestId/traceId (set by RequestIdFilter) are included in every JSON
+  line automatically: LogstashEncoder emits the full MDC by default.
+-->
+<configuration>
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="application"/>
+
+    <!-- Human-readable output when the json-logging profile is NOT active -->
+    <springProfile name="!json-logging">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [%X{requestId:-}] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- One JSON object per line when the json-logging profile is active -->
+    <springProfile name="json-logging">
+        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"app":"${appName}"}</customFields>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+    </springProfile>
+
+</configuration>

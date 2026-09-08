@@ -1,13 +1,16 @@
 package {{BasePackage}}.features.{{feature}}.exception;
 
+import {{BasePackage}}.shared.exception.EntityNotFoundException;
+
 /**
  * Thrown when a {{Feature}} cannot be found by the given identifier.
  *
- * <p>Mapped to HTTP 404 by {@code GlobalExceptionHandler} in {@code shared/exception/}.
- * If your project uses a common {@code EntityNotFoundException} base class, extend that instead
- * of {@link RuntimeException} so the global handler can treat all not-found cases uniformly.
+ * <p>Extends the shared {@link EntityNotFoundException} base so
+ * {@code GlobalExceptionHandler} maps every not-found case to HTTP 404
+ * (RFC 9457 ProblemDetail) with one handler. Scaffold the base with
+ * {@code scripts/init_shared.py} if it does not exist yet.
  */
-public class {{Feature}}NotFoundException extends RuntimeException {
+public class {{Feature}}NotFoundException extends EntityNotFoundException {
 
     public {{Feature}}NotFoundException(Long id) {
         super("{{Feature}} not found: id=" + id);

@@ -12,7 +12,7 @@ public record Update{{Feature}}Request(
 
         @NotBlank
         @Size(max = 255)
-        @Schema(description = "Display name", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Display name", example = "Example name", requiredMode = Schema.RequiredMode.REQUIRED)
         String name
 
         // TODO: add remaining fields for the update payload

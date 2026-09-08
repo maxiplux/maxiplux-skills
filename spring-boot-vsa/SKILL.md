@@ -1,6 +1,6 @@
 ---
 name: spring-boot-vsa
-description: Architectural guideline for Spring Boot projects using Vertical Slice Architecture (VSA). Use this skill whenever working on a Spring Boot codebase — creating new features/endpoints, reviewing existing handlers/controllers/services, or refactoring layered code into slices. Trigger on phrases like "vertical slice", "VSA", "feature slice", "new endpoint", "scaffold a feature", "refactor into slices", "where should this code live", "package structure", or when you see a `features/{name}/{api,handlers,model}` layout in the project. Also apply proactively when helping with Spring Boot code organization even if the user doesn't name the architecture — this is the enforcement document for VSA conventions (package layout, naming, injection rules, transactional boundaries, error handling).
+description: Architectural guideline for Spring Boot projects using Vertical Slice Architecture (VSA). Use when working on any Spring Boot codebase - creating features/endpoints, reviewing handlers/controllers/services, refactoring layered code into slices, scaffolding shared/ infrastructure, or setting up error handling, logging, or API docs. Trigger on "vertical slice", "VSA", "feature slice", "new endpoint", "scaffold a feature", "refactor into slices", "package structure", "ProblemDetail", "exception handler", "openapi examples", "swagger examples", "structured logging", "json logging", "MDC", "lombok", "slf4j", "springdoc", "shared scaffold", or a features/{name}/{api,handlers,model} layout. Apply proactively to Spring Boot code organization even if the user doesn't name the architecture - this is the enforcement document for VSA conventions (layout, naming, injection, transactions, ProblemDetail errors, log.error rules, OpenAPI request/response/error examples).
 ---
 
 # Spring Boot Vertical Slice Architecture (VSA)
@@ -30,12 +30,12 @@ Every project following this skill has two top-level packages under the applicat
 ```
 {base-package}/
 ├── {ApplicationName}Application.java    # Spring Boot entry point
-├── shared/                               # Cross-cutting concerns only
-│   ├── config/                           # @Configuration beans
-│   ├── entity/                           # BaseEntity (id, createdAt, updatedAt) as @MappedSuperclass
-│   ├── exception/                        # GlobalExceptionHandler (RFC 7807 ProblemDetail)
-│   ├── security/                         # SecurityConfig, UserDetailsService, auth handlers
-│   └── util/                             # Generic utilities used across 2+ slices
+├── shared/                               # Cross-cutting concerns — scaffold with scripts/init_shared.py
+│   ├── config/                           # AsyncConfig (+ RequestIdFilter, MdcTaskDecorator with --with-json-logging)
+│   ├── entity/                           # BaseEntity (@MappedSuperclass: id, createdAt, updatedAt)
+│   ├── exception/                        # EntityNotFoundException base + GlobalExceptionHandler (RFC 9457 ProblemDetail)
+│   ├── security/                         # SecurityConfig, auth handlers — create when needed (NOT emitted by init_shared.py)
+│   └── util/                             # Generic utilities used across 2+ slices — create when needed (NOT emitted by init_shared.py)
 └── features/                             # All feature slices live here
     └── {feature}/
         ├── api/                          # HTTP layer
@@ -74,11 +74,21 @@ Follow these rigidly — they're what make VSA navigable. If you can't find a fi
 
 **The "one handler per use case" rule matters.** Don't write a `PaymentService` with ten methods. Write `CreatePaymentHandler`, `RefundPaymentHandler`, `GetPaymentHandler` as separate classes. Each handler has one public method (conventionally named `handle(...)`). This keeps slices small, testable, and easy to reason about.
 
+**Fixed shared names:** components in `shared/` have fixed, project-independent names — `BaseEntity`, `EntityNotFoundException`, `GlobalExceptionHandler`, `AsyncConfig`, plus opt-in `RequestIdFilter`/`MdcTaskDecorator`. Scaffold them with `scripts/init_shared.py`; slices never rename or redefine them.
+
 ---
 
 ## Cross-cutting rules (non-negotiable for this architecture)
 
 These rules apply to every slice. They're the reason the architecture holds together.
+
+### Required stack (every slice)
+- **Lombok** — `@RequiredArgsConstructor` for DI, `@Getter`/`@Setter`/`@Builder` on entities, `@Slf4j` wherever logging happens. Never hand-write constructors or `LoggerFactory.getLogger(...)`; ensure the annotation processor is configured.
+- **SLF4J via `@Slf4j`** — the only logging API. Never `java.util.logging`, never `System.out`.
+- **springdoc-openapi** — `springdoc-openapi-starter-webmvc-ui` (WebFlux projects use the webflux variant). Every public endpoint fully documented with request, response, AND error examples (see OpenAPI rules).
+- **Validation** — `spring-boot-starter-validation`; constraints on record components.
+- **Spring `ProblemDetail` (RFC 9457)** — the only error response body, produced by the shared `GlobalExceptionHandler`.
+- **Opt-in JSON logging** — `net.logstash.logback:logstash-logback-encoder` (scaffolded by `init_shared.py --with-json-logging`).
 
 ### Dependency injection
 - **Constructor injection only.** Use Lombok's `@RequiredArgsConstructor` and declare dependencies as `private final`.
@@ -99,23 +109,38 @@ These rules apply to every slice. They're the reason the architecture holds toge
 - **`FetchType.LAZY` on every `@ManyToOne`, `@OneToMany`, `@ManyToMany`.** Eager fetching kills performance silently.
 - **Use `JOIN FETCH` in JPQL** (or entity graphs) when you know you need the associations — avoids the N+1 problem.
 - **Bounded queries only.** Return `Page<T>`, `Slice<T>`, or use `findTopN` / `findFirstBy...`. Never return an unbounded `List<T>` from a repository method that could grow.
+- **Serializing `Page<T>` directly:** on Spring Boot 3.3+ returning a `PageImpl` straight from a controller logs a "not supported... no guarantee about the stability of the resulting JSON structure" warning at startup and the page JSON is not a stable contract. Add `@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)` on a `@Configuration` class (e.g. in `shared/config/`) to pin the DTO shape, or map to a slice-owned paged response record.
 - **`@Enumerated(EnumType.STRING)`** always. `ORDINAL` breaks when enum values are reordered.
 
-### Error handling
-- **One `GlobalExceptionHandler` in `shared/exception/`**, using `@RestControllerAdvice`.
-- **RFC 7807 `ProblemDetail`** as the response body for every error.
-- **Slice-specific exceptions extend a common base** (e.g. `EntityNotFoundException`) and live in `{slice}/exception/`. The global handler maps them to HTTP status codes.
-- **Never let `RuntimeException` propagate unmapped.** It should hit the handler and return a well-formed ProblemDetail with a stable `type` URI.
+### Error handling (RFC 9457 ProblemDetail)
+- **One `GlobalExceptionHandler` in `shared/exception/`**: `@Slf4j` `@RestControllerAdvice` **extending `ResponseEntityExceptionHandler`**. Scaffold it with `scripts/init_shared.py`.
+- **Set `spring.mvc.problemdetails.enabled=true`** so framework exceptions (validation, type mismatch, unknown route) render as `application/problem+json` with no custom code.
+- **Custom `@ExceptionHandler` methods only for domain exceptions** — `EntityNotFoundException` → 404, business-rule violations — plus one catch-all `Exception` → 500 with `log.error(msg, ex)`.
+- **Spring Security caveat:** if the project uses Spring Security, the catch-all `Exception` handler would turn an `AccessDeniedException`/`AuthenticationException` that reaches the advice (e.g. from `@PreAuthorize` method security) into a 500. Add explicit handlers mapping them to 403/401, or rethrow them, so auth failures aren't masked as server errors.
+- **Custom/domain ProblemDetails you construct set** a stable `type` URI (`https://api.example.com/problems/{slug}`) and `instance` = the request URI (`problem.setInstance(URI.create(request.getRequestURI()))`). Framework-rendered errors (validation, type mismatch) via `spring.mvc.problemdetails.enabled=true` keep Spring's default `type: about:blank` — that's expected, not a violation.
+- **Slice *not-found* exceptions extend the shared `EntityNotFoundException` base** and live in `{slice}/exception/`, so the one 404 handler covers them all. Other domain exceptions (business-rule violations, upstream-unavailable) are their own typed slice exceptions with a dedicated `@ExceptionHandler` on `GlobalExceptionHandler` — they do NOT extend the not-found base. Never let a raw `RuntimeException` propagate unmapped.
+- **Boot version caveat:** `ProblemDetail` requires Spring Boot 3.x+ (Framework 6). On Boot 2.x, hand-roll an `ErrorResponse` record with the same RFC 9457 fields and return `ResponseEntity<ErrorResponse>` — see `references/shared-and-logging.md`.
 
-### Logging
-- **`@Slf4j` on every class that catches exceptions or performs a side effect worth tracing.**
-- **Parameterized messages only**: `log.info("User {} created payment {}", userId, paymentId)`. Never string-concatenate.
-- **Log at the boundary** (handler entry for warn/error, DEBUG for detail). Don't log the same event at multiple layers.
+### Logging (SLF4J via Lombok @Slf4j)
+- **`@Slf4j` on every class that logs** — controllers, handlers, `GlobalExceptionHandler`, event listeners, external clients. Not on mappers/DTOs/entities.
+- **Parameterized messages only**: `log.info("Created payment id={}", id)`. Never string-concatenate. Never `printStackTrace()`.
+- **Every failure path logs at ERROR — never `log.warn`/`log.info` for a failure.** Domain 4xx (not-found, validation): `log.error` without the throwable (expected failures need no stack trace). 5xx / unexpected / exhausted retries / async failures: `log.error` with the throwable as the LAST argument.
+- **Single HTTP logging boundary = `GlobalExceptionHandler`.** A handler that throws must NOT also `log.error` the same failure — one failure, one ERROR line.
+- **Async listeners, `@Recover` methods, and scheduled jobs that *swallow* a failure** (catch it, return a fallback, don't propagate to the HTTP boundary) **MUST `log.error` locally** — nothing else will ever see it. If instead they *rethrow* a domain exception that `GlobalExceptionHandler` maps, the handler logs it — don't log locally too (that double-logs).
+- **Never log full request/response DTOs** (PII risk) or secrets. Log business ids and action names only.
 
-### OpenAPI
-- Controllers carry `@Tag(name = "...", description = "...")` at the class level.
-- Each endpoint has `@Operation(summary = ..., description = ...)` and `@ApiResponses({...})`.
-- Request/response DTOs use `@Schema(description = ...)` on non-obvious fields.
+### Structured logging (opt-in JSON + MDC)
+- Scaffold with `scripts/init_shared.py --with-json-logging`: emits `logback-spring.xml` (logstash-logback-encoder JSON, activated by the `json-logging` Spring profile), `RequestIdFilter` (reads `X-Request-Id` or generates a UUID → MDC keys `requestId`/`traceId`, echoed on the response), and `MdcTaskDecorator` wired into `AsyncConfig` so MDC survives `@Async` thread hops.
+- Once enabled, every request-scoped log line carries the correlation id automatically — don't log request-scoped work outside MDC context.
+- Requires `net.logstash.logback:logstash-logback-encoder`. Setup details: `references/shared-and-logging.md`.
+
+### OpenAPI (springdoc) — request, response, AND error examples
+- Controllers carry `@Tag(name = "...", description = "...")` at the class level; every endpoint has `@Operation(summary = ..., description = ...)`.
+- **`@ApiResponses` documents every status the endpoint can return**, and examples must cover all three parts:
+  1. **Request examples** — `@Schema(description = ..., example = ...)` on **every** request DTO field; required fields add `requiredMode = Schema.RequiredMode.REQUIRED`.
+  2. **Response examples** — `@Schema(description = ..., example = ...)` on **every** response DTO field; success responses carry `content = @Content(mediaType = "application/json", schema = @Schema(implementation = XxxResponse.class))`. Exception: `Page<T>` returns omit explicit content — springdoc infers the generic type.
+  3. **Error examples** — every error status carries `content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class), examples = @ExampleObject(...))` with a realistic ProblemDetail JSON body (`type`, `title`, `status`, `detail`, `instance`).
+- Timestamp examples use ISO-8601 UTC: `"2026-07-17T09:30:00Z"`.
 
 ### Async / events (when applicable)
 - **Domain events** go in `{slice}/events/` and extend `ApplicationEvent` (or are plain records used with `ApplicationEventPublisher`).
@@ -132,6 +157,15 @@ These rules apply to every slice. They're the reason the architecture holds toge
 ## Workflow 1 — Scaffold a new slice
 
 When the user asks to create a new feature, use this flow:
+
+### Step 0 — ensure shared/ exists
+
+Slices depend on `shared/` (`BaseEntity`, `EntityNotFoundException`, `GlobalExceptionHandler`) and will not compile without it. If `{base-package}/shared/entity/BaseEntity.java` is missing, scaffold it first:
+
+```bash
+python scripts/init_shared.py --base-package com.acme.billing --output-dir src/main/java
+# add --with-json-logging for JSON logs + MDC request correlation
+```
 
 ### Step 1 — gather inputs
 
@@ -152,19 +186,25 @@ python scripts/create_slice.py \
     --output-dir src/main/java
 ```
 
-This creates all files under `src/main/java/com/acme/billing/features/payment/`, populated from the templates in `assets/`. Placeholders (`{{Feature}}`, `{{FEATURE}}`, `{{feature}}`, `{{BasePackage}}`, `{{Action}}`) are substituted automatically.
+This creates all files under `src/main/java/com/acme/billing/features/payment/`, populated from the templates in `assets/`. Name placeholders (`{{Feature}}`, `{{FEATURE}}`, `{{feature}}`, `{{BasePackage}}`) are substituted automatically; the controller and mapper are additionally assembled from the requested actions.
+
+**Action order is normalized.** However you list `--actions`, files and controller endpoints are generated in the canonical order `create, list, get, update, delete` (see `KNOWN_ACTIONS`/`parse_actions` in the script). `--actions get,create` and `--actions create,get` produce identical output.
+
+**Running the CLIs.** Both scripts resolve their templates relative to their own location (`__file__`), so you can invoke them by absolute path from anywhere — e.g. `python /path/to/skill/scripts/create_slice.py ...`. `--output-dir`/`--resources-dir` are resolved against the **current working directory**, which should be the target Spring Boot project root. The relative `python scripts/...` examples here assume your shell is in the skill directory; for a real project, use an absolute path to the script and point `--output-dir` at that project's source root.
 
 ### Step 3 — fill in real logic
 
-The scaffold produces a compiling but hollow slice — entity has only `id`, handler method is empty, mapper returns `null`. Walk through each file and fill in:
+The scaffold produces a hollow slice — the entity carries only the inherited `id`/timestamps plus a placeholder `name`, mapper/handler methods have real bodies with `// TODO` markers for the domain fields. It **compiles only inside an existing Spring Boot 3.x project** that already provides the required stack (Lombok, `spring-boot-starter-validation`, springdoc-openapi, Spring Data JPA), the `shared/` package (Step 0), and an `{ApplicationName}Application.java` entry point + build file — none of which these scripts create. Walk through each file and fill in:
 1. **Entity fields** based on the domain model the user described
 2. **Request/response record components** based on what the API should accept/return
 3. **Repository queries** specific to the feature
 4. **Handler business logic** — the actual use case
 5. **Mapper** — entity ↔ response conversion
-6. **OpenAPI descriptions** on controller endpoints
+6. **OpenAPI docs** — summaries, descriptions AND examples for request, response, and error bodies
 
 ### Step 4 — verify it fits the project
+
+Applies when the project already has conventions to check against; on a greenfield project, defer these until a build file and API conventions exist.
 
 - Confirm imports resolve (base package, shared exception base class)
 - Confirm the entity's `@Table(name = "...")` matches the project's naming convention (snake_case? plural?)
@@ -219,17 +259,28 @@ When the user asks you to review a file/slice/codebase, walk this checklist. Rep
 - Controller returning `ResponseEntity<String>` for errors instead of ProblemDetail
 - Slice without a `GlobalExceptionHandler` entry for its custom exceptions (either the global handler handles it generically, or a specific mapping is missing)
 - `throw new RuntimeException(...)` instead of a typed slice exception
+- `log.warn` or `log.info` on a failure path — **violation, failures log at ERROR**
+- Handler both throws AND `log.error`s the same failure `GlobalExceptionHandler` will log — **double-logging violation**
+- 5xx / async / exhausted-retry `log.error` without the throwable as the last argument — **violation, stack trace lost**
+- A **custom/domain** ProblemDetail (one you construct in a handler) without a stable `type` URI or without `instance` set to the request URI — flag it. Do NOT flag `type: about:blank` on framework-rendered validation/type-mismatch errors — that's Spring's expected default.
+- `GlobalExceptionHandler` not extending `ResponseEntityExceptionHandler`, or `spring.mvc.problemdetails.enabled` not set — flag it
+- Slice `{Slice}NotFoundException` extending `RuntimeException` directly instead of shared `EntityNotFoundException` — **flag for migration**
 
 ### Logging violations
 - String concatenation in log messages: `log.info("user " + id + " did x")` — **violation, use `{}`**
 - Missing `@Slf4j` on a class that catches exceptions
 - `e.printStackTrace()` anywhere — **violation**
 - Sensitive data (password, token, PII) in log messages
+- Full request/response DTO in a log message (`log.info("... request={}", request)`) — **PII violation, log ids only**
+- Async listener / `@Recover` / scheduled method whose failure path has no local `log.error` — **violation, failures vanish**
+- Request-scoped logs missing the MDC correlation id when JSON logging is enabled — flag it
 
 ### OpenAPI violations
 - Controller without `@Tag`
 - Endpoint without `@Operation`
 - Public API without `@ApiResponses` documenting error codes
+- Error status without `application/problem+json` content + `ProblemDetail` schema + `@ExampleObject` — **violation**
+- Request or response DTO field without `@Schema(description = ..., example = ...)` — **violation**
 
 **Audit report format:** group by severity (**Blocker / Major / Minor**) and by file. For each, give one-line description + fix hint. Keep it terse — the user doesn't want an essay per finding.
 
@@ -258,6 +309,8 @@ Ask: "What features does this codebase have?" or infer from the controllers. Eac
 
 After 2+ slices are converted, look at what's still in `shared/` or in an old generic package. Anything used by ≥2 slices stays in `shared/`; anything used by only one slice moves into that slice.
 
+If the legacy project has no `shared/` package yet, run `scripts/init_shared.py` first to scaffold `BaseEntity`/`EntityNotFoundException`/`GlobalExceptionHandler`/`AsyncConfig`, re-point legacy base classes and ad-hoc `@ControllerAdvice` classes at it, and delete the old error-handling code once every slice routes through `GlobalExceptionHandler`.
+
 ### Step 4 — delete the old packages
 
 Once every controller and service has been moved, delete the old `controller/`, `service/`, `repository/`, `dto/` top-level packages. The codebase should now have only `{base}/{ApplicationName}Application.java`, `{base}/shared/`, and `{base}/features/`.
@@ -281,7 +334,7 @@ These vary legitimately between Spring Boot projects. Do not impose an opinion u
 - **Messaging** — Kafka, RabbitMQ, Spring ApplicationEvents, or none
 - **Cloud/deploy** — Railway, AWS, GCP, bare metal
 - **Build tool** — Gradle or Maven
-- **Spring Boot major version** — 2.x, 3.x, 4.x
+- **Spring Boot minor/patch version** — but note: the ProblemDetail error contract assumes **Boot 3.x+**; on Boot 2.x use the `ErrorResponse` fallback documented in `references/shared-and-logging.md`
 - **WebMVC vs WebFlux** — whichever the project uses
 
 If a user's project has an opinion on these (check their `build.gradle`, `pom.xml`, `CLAUDE.md`, or an existing slice), follow it. If they ask you to choose, ask them first.
@@ -293,8 +346,11 @@ If a user's project has an opinion on these (check their `build.gradle`, `pom.xm
 - `references/basic-crud-slice.md` — worked example: complete `payment` slice with CRUD operations
 - `references/event-driven-slice.md` — worked example: slice that publishes a domain event + async listener
 - `references/external-api-slice.md` — worked example: slice with `@Retryable` external API call + `@Recover` fallback
+- `references/shared-and-logging.md` — worked example: full `shared/` package, ProblemDetail handler, Boot 2.x fallback, JSON/MDC logging setup
 
 ## Scaffolding assets
 
+- `scripts/init_shared.py` — CLI that scaffolds the `shared/` package (run once per project, before the first slice)
 - `scripts/create_slice.py` — CLI that generates a new slice directory from templates
-- `assets/*.tmpl` — Java file templates used by the script (also readable as standalone examples)
+- `scripts/_scaffold_common.py` — naming/substitution/file helpers shared by both CLIs
+- `assets/*.tmpl` — slice templates; `assets/shared/*.tmpl` — shared-package templates (also readable as standalone examples)

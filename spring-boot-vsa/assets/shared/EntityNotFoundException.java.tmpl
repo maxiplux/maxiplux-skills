@@ -1,0 +1,22 @@
+package {{BasePackage}}.shared.exception;
+
+/**
+ * Base class for all "resource not found" domain exceptions.
+ *
+ * <p>Slice exceptions ({@code PaymentNotFoundException}, {@code InvoiceNotFoundException}, ...)
+ * extend this so {@code GlobalExceptionHandler} maps every not-found case to
+ * HTTP 404 (RFC 9457 ProblemDetail) with one handler method.
+ *
+ * <p>Abstract on purpose: always throw a typed slice exception, never this base directly.
+ *
+ * <p><strong>Naming caution:</strong> this class shares its simple name with
+ * {@code jakarta.persistence.EntityNotFoundException}. Never import the jakarta
+ * class in shared code or exception handlers — JPA's own exception (thrown by
+ * e.g. {@code getReferenceById}) intentionally falls through to the 500 catch-all.
+ */
+public abstract class EntityNotFoundException extends RuntimeException {
+
+    protected EntityNotFoundException(String message) {
+        super(message);
+    }
+}

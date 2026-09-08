@@ -1,0 +1,30 @@
+package {{BasePackage}}.shared.config;
+
+import org.slf4j.MDC;
+import org.springframework.core.task.TaskDecorator;
+
+import java.util.Map;
+
+/**
+ * Copies the caller's MDC ({@code requestId}/{@code traceId}) onto {@code @Async}
+ * worker threads so async log lines stay correlated with the originating request.
+ *
+ * <p>Wired into {@code AsyncConfig} via {@code executor.setTaskDecorator(new MdcTaskDecorator())}.
+ */
+public class MdcTaskDecorator implements TaskDecorator {
+
+    @Override
+    public Runnable decorate(Runnable runnable) {
+        Map<String, String> contextMap = MDC.getCopyOfContextMap();
+        return () -> {
+            if (contextMap != null) {
+                MDC.setContextMap(contextMap);
+            }
+            try {
+                runnable.run();
+            } finally {
+                MDC.clear();
+            }
+        };
+    }
+}

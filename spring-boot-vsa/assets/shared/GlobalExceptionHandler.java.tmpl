@@ -1,0 +1,60 @@
+package {{BasePackage}}.shared.exception;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.net.URI;
+
+/**
+ * Single HTTP error boundary for the whole application (RFC 9457 Problem Details).
+ *
+ * <p>Framework exceptions (validation, type mismatch, unknown route, ...) are handled by
+ * {@link ResponseEntityExceptionHandler}; set {@code spring.mvc.problemdetails.enabled=true}
+ * so they render as {@code application/problem+json}. Only domain exceptions and the
+ * catch-all live here.
+ *
+ * <p><strong>Logging contract:</strong> this class is the ONLY place that logs HTTP request
+ * failures. Handlers that throw must not also {@code log.error} the same failure.
+ *
+ * <p>Requires Spring Boot 3.x+ (Spring Framework 6). For Boot 2.x see the ErrorResponse
+ * fallback in references/shared-and-logging.md of the spring-boot-vsa skill.
+ */
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static final String PROBLEM_BASE = "https://api.example.com/problems/";
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ProblemDetail handleNotFound(EntityNotFoundException ex, HttpServletRequest request) {
+        // Domain 4xx: expected failure — ERROR without the throwable (no stack-trace noise).
+        log.error("Resource not found: {} [{} {}]", ex.getMessage(), request.getMethod(), request.getRequestURI());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Resource not found");
+        problem.setType(URI.create(PROBLEM_BASE + "not-found"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    // NOTE: if the project uses Spring Security, this catch-all would turn an
+    // AccessDeniedException / AuthenticationException that reaches the advice
+    // (e.g. from method security like @PreAuthorize) into a 500. Add explicit
+    // @ExceptionHandler methods for those (403 / 401), or rethrow them, so the
+    // catch-all never masks an auth failure as a server error.
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
+        // Unexpected 5xx: full stack trace — throwable as the LAST argument.
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        problem.setTitle("Internal server error");
+        problem.setType(URI.create(PROBLEM_BASE + "internal-error"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+}

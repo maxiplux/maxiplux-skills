@@ -47,6 +47,8 @@ public class AsyncConfig {
 
 The executor's name (`taskExecutor`) matters — listeners will reference it by that name.
 
+If you scaffolded with `init_shared.py --with-json-logging`, `AsyncConfig` additionally wires `executor.setTaskDecorator(new MdcTaskDecorator());` so the caller's `requestId`/`traceId` MDC keys survive the hand-off to async threads. Without it, async log lines lose their correlation id.
+
 ## Step 2 — define the event in the publisher slice
 
 `features/order/events/OrderCompletedEvent.java`:
@@ -130,9 +132,14 @@ public class CompleteOrderHandler {
 }
 ```
 
-Key detail: the event is published **inside** the transaction. By default Spring holds the event until the transaction commits, then delivers it — so listeners never see a state that rolled back. (Spring does this automatically when listeners are `@TransactionalEventListener`; with plain `@EventListener` the delivery is synchronous-to-publish, but `@Async` immediately hands off to another thread, so the downstream work still runs outside the publisher's transaction.)
+Key detail: the event is published **inside** the transaction, and delivery timing depends on the listener annotation:
 
-If you need stricter "only fire if commit succeeded" guarantees, use `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` on the listener.
+- **Plain `@EventListener`** (used above) delivers **synchronously at publish time — before the transaction commits.** With `@Async` the listener body is immediately handed to another thread, so it runs outside (and unaware of) the publisher's transaction. If the publisher then rolls back, the listener has already fired: a notification may be sent for an order that never persisted.
+- **`@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`** holds the event until the transaction **commits**, then delivers it — so the listener never reacts to a state that rolled back.
+
+Choose `@TransactionalEventListener(phase = AFTER_COMMIT)` when the reaction must only happen if the write succeeded (the common case for "send a notification / generate an invoice after X"). Use plain `@EventListener` only when firing on a not-yet-committed event is acceptable.
+
+One footgun to know: `@TransactionalEventListener` **silently does nothing if the event is published outside a transaction** (its `fallbackExecution` defaults to `false`). That's fine here — `CompleteOrderHandler.handle` is `@Transactional` — but if you publish the same event from a non-transactional path, the listener won't fire. Set `fallbackExecution = true` if it must run either way.
 
 ## Step 4 — listen in another slice
 
@@ -146,10 +153,11 @@ import com.acme.ordering.features.notification.model.NotificationRepository;
 import com.acme.ordering.features.order.events.OrderCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 @RequiredArgsConstructor
@@ -159,24 +167,31 @@ public class OrderCompletedNotificationListener {
     private final NotificationRepository notificationRepository;
 
     @Async("taskExecutor")
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional
     public void onOrderCompleted(OrderCompletedEvent event) {
-        log.info("Sending notification for completed order id={}", event.orderId());
+        try {
+            log.info("Sending notification for completed order id={}", event.orderId());
 
-        Notification notification = Notification.builder()
-                .customerId(event.customerId())
-                .message("Your order #" + event.orderId() + " is complete.")
-                .build();
+            Notification notification = Notification.builder()
+                    .customerId(event.customerId())
+                    .message("Your order #" + event.orderId() + " is complete.")
+                    .build();
 
-        notificationRepository.save(notification);
+            notificationRepository.save(notification);
+        } catch (Exception ex) {
+            // Async path: no HTTP boundary will ever log this — the listener MUST log.error locally.
+            log.error("Failed to create notification for completed order id={}", event.orderId(), ex);
+        }
     }
 }
 ```
 
 Important details:
 - **`@Async("taskExecutor")`** — hands off to the thread pool; the publisher doesn't block.
-- **`@Transactional`** is on the listener itself — it runs outside the publisher's transaction and owns its own unit of work.
+- **`@TransactionalEventListener(phase = AFTER_COMMIT)`** — the notification only fires once the order transaction has committed, so a rolled-back order never triggers a "your order is complete" message. (Plain `@EventListener` would fire before commit — see the delivery-timing note above.)
+- **`@Transactional`** is on the listener itself — after commit it starts its own new unit of work to persist the notification.
+- **The try/catch with local `log.error(..., ex)` is mandatory.** An uncaught exception on an async thread never reaches `GlobalExceptionHandler` — it disappears into the executor.
 - **One listener method per event reaction.** If the notification slice also cares about `OrderCancelledEvent`, that's a second method (or a second class).
 
 **Cross-slice import note:** the listener imports `OrderCompletedEvent` from `features/order/events/`. This is the **only** kind of cross-slice import VSA allows — events are a published contract, not implementation details. Importing another slice's handler, entity, or repository is a violation; importing its event is fine.
@@ -184,6 +199,6 @@ Important details:
 ## Common pitfalls
 
 - **`@Async` silently ignored.** Happens when the annotation is on a method called from the same class, or when `@EnableAsync` is missing. Always put listeners in a `@Service` class and invoke them only via Spring events, never via direct method call.
-- **Listener throws but publisher doesn't know.** That's by design — but it means you need monitoring on listeners. Log exceptions and consider a dead-letter mechanism for critical workflows.
+- **Listener throws but publisher doesn't know.** That's by design — and it's exactly why every async listener catches and `log.error`s locally, with the throwable as the last argument. An uncaught listener exception disappears into the executor. Consider a dead-letter mechanism for critical workflows.
 - **Transaction boundary confusion.** If a listener is `@Transactional` and the publisher is also `@Transactional`, they are two separate transactions. A listener cannot roll back the publisher.
 - **Event shape churning.** Once multiple listeners depend on an event, changing the record's components is a breaking change across slices. Version the event (e.g. `OrderCompletedEventV2`) rather than modifying the original.
