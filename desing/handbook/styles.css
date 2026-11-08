@@ -78,8 +78,10 @@
 .section-quiz { scroll-margin-top: 5rem; }
 .quiz-kicker { margin: 0; text-transform: uppercase; letter-spacing: .12em; font: 700 .72rem Consolas, monospace; color: var(--color-secondary); }
 .quiz-question { margin: .85rem 0 0; font-size: 1.15rem; line-height: 1.35; }
+.quiz-hint { margin: .35rem 0 0; font-size: .9rem; }
 .quiz-option { border-color: var(--color-base-300); }
-.quiz-option[aria-pressed="true"] { outline: 3px solid color-mix(in oklab, var(--color-primary) 35%, transparent); outline-offset: 2px; }
+.quiz-option[aria-pressed="true"] { box-shadow: inset 0 0 0 2px currentColor; }
+.quiz-option:focus-visible { outline: 3px solid var(--color-secondary); outline-offset: 4px; }
 .quiz-feedback { min-height: 1.5rem; font-weight: 700; }
 .reading .collapse-title { font-size: 1.05rem; font-weight: 650; }
 .reading .collapse-content p { margin: .25rem 0 1rem; }

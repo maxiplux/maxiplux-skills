@@ -23,9 +23,13 @@ let activeChapter, sectionIndex = 0, code = 0, figure = 0, quizCount = 0;
 
 function renderQuiz(sectionId, item) {
   if (!item) throw new Error(`Add a quiz entry for ${activeChapter.file}#${sectionId}`);
+  if (item.options.length < 2 || !Number.isInteger(item.correct) || item.correct < 0 || item.correct >= item.options.length) throw new Error(`Invalid quiz answers for ${activeChapter.file}#${sectionId}`);
   const quizId = `quiz-${++quizCount}`;
   const feedbackId = `${quizId}-feedback`;
-  return `<aside class="section-quiz card bg-base-200 border border-base-300 my-8" data-quiz="${quizId}" data-quiz-correct="${item.correct}"><div class="card-body p-5 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><p class="quiz-kicker">Check your understanding</p><span class="badge badge-outline">Quick quiz</span></div><h4 class="quiz-question" id="${quizId}-question">${escape(item.question)}</h4><div class="quiz-options grid gap-2 mt-3" role="group" aria-labelledby="${quizId}-question">${item.options.map((option, index) => `<button type="button" class="btn quiz-option justify-start text-left h-auto min-h-12 whitespace-normal" data-quiz-answer="${index}" aria-describedby="${feedbackId}" aria-pressed="false">${escape(option)}</button>`).join('')}</div><p class="quiz-feedback mt-3" id="${feedbackId}" role="status" aria-live="polite" aria-atomic="true"></p><p class="quiz-explanation text-sm mt-1 hidden">${escape(item.explanation)}</p></div></aside>`;
+  const offset = (quizCount - 1) % item.options.length;
+  const options = [...item.options.slice(offset), ...item.options.slice(0, offset)];
+  const correct = (item.correct - offset + options.length) % options.length;
+  return `<aside class="section-quiz card bg-base-200 border border-base-300 my-8" data-quiz="${quizId}" data-quiz-correct="${correct}"><div class="card-body p-5 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><p class="quiz-kicker">Check your understanding</p><span class="badge badge-outline">Question ${quizCount} of ${chapters.flatMap(c => c.sections).length}</span></div><h4 class="quiz-question" id="${quizId}-question">${escape(item.question)}</h4><p class="quiz-hint">Choose one answer. You can try again.</p><div class="quiz-options grid gap-2 mt-3" role="group" aria-labelledby="${quizId}-question">${options.map((option, index) => `<button type="button" class="btn quiz-option justify-start text-left h-auto min-h-12 whitespace-normal" data-quiz-answer="${index}" aria-describedby="${feedbackId}" aria-pressed="false">${escape(option)}</button>`).join('')}</div><p class="quiz-feedback mt-3" id="${feedbackId}" role="status" aria-live="polite" aria-atomic="true"></p><p class="quiz-explanation text-sm mt-1 hidden">${escape(item.explanation)}</p></div></aside>`;
 }
 renderDiagrams(root);
 const markdown = new Marked({ gfm: true, renderer: {
