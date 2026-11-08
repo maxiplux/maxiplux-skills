@@ -5,6 +5,7 @@
   "scripts": {
     "build": "node build.mjs",
     "build:pages": "node build.mjs && node pages.mjs",
+    "build:public": "npm run build:pages && node public-pages.mjs",
     "check": "node pages.mjs --check"
   },
   "devDependencies": {

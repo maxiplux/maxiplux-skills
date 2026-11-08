@@ -1,6 +1,6 @@
 # Visual handbook renderer
 
-Read the [published handbook](https://maxiplux.github.io/maxiplux-skills/), or open [guide-lines.html](../guide-lines.html) in a browser. Its reading content, images, styles, and interactions are self-contained and work offline; readers do not need Node or a web server. External references need internet access, and links to source files need the repository or published site.
+Read the [published handbook](https://maxiplux.github.io/maxiplux-skills-handbook/), or open [guide-lines.html](../guide-lines.html) in a browser. Its reading content, images, styles, and interactions are self-contained and work offline; readers do not need Node or a web server. External references need internet access, and links to source files need the repository or published site.
 
 The source index is [guide-lines](../guide-lines). Edit the three chapter sources: [UI / UX & Design](../ui-ux-design.md), [AI Agents](../ai-agents.md), and [Software Architecture](../software-architecture.md). The browser shell supplies interactive examples, grouped navigation, image enlargement, and copy controls. Images live in [assets](../assets).
 
@@ -12,6 +12,14 @@ npm run build
 ```
 
 ## Publish on GitHub Pages
+
+The live handbook is hosted in the public [maxiplux-skills-handbook repository](https://github.com/maxiplux/maxiplux-skills-handbook). This authoring repository remains private.
+
+To prepare the public copy, run `npm run build:public` from this directory. Copy only the contents of the generated `_public-site/` directory into the hosting repository, commit, and push to `main`. GitHub Pages publishes that branch's root automatically. The bundle includes two HTML editions and the SVG/JSON illustration resources linked by the guide. Implementation-source links point back to this private repository; source files, installers, and Git history are not copied.
+
+The workflow in this authoring repository validates changes and uploads an artifact. It does not automatically push to the separate hosting repository.
+
+### Build the complete site from this repository
 
 From this directory, run:
 

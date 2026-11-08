@@ -4,7 +4,7 @@
 
 Three reusable coding-agent skills and an illustrated handbook called **Design without guessing**. Start with a task, choose the guidance you need, and check the result. You do not need a design background to follow the handbook; the code examples use Spring Boot and Angular.
 
-**[Read the interactive handbook →](https://maxiplux.github.io/maxiplux-skills/)** · [Download the offline HTML](https://maxiplux.github.io/maxiplux-skills/desing/guide-lines.html) · [Read the Markdown chapters](./desing/guide-lines)
+**[Read the interactive handbook →](https://maxiplux.github.io/maxiplux-skills-handbook/)** · [Download the offline HTML](https://maxiplux.github.io/maxiplux-skills-handbook/desing/guide-lines.html) · [Read the Markdown chapters](./desing/guide-lines)
 
 The handbook includes a tool chooser, an API-state demo, enlargable illustrations, copyable prompts, and print / PDF support. Reading it installs nothing. For offline use, save the HTML file and open it in a browser; its reading content, images, styles, and interactions are embedded. External references still need internet access.
 
@@ -12,7 +12,7 @@ The handbook includes a tool chooser, an API-state demo, enlargable illustration
 
 | What you want to do | Your next step |
 | --- | --- |
-| Understand the ideas before installing anything | Read the overview below, then open the [handbook](https://maxiplux.github.io/maxiplux-skills/) |
+| Understand the ideas before installing anything | Read the overview below, then open the [handbook](https://maxiplux.github.io/maxiplux-skills-handbook/) |
 | Build or improve an application screen | Start with [UI / UX & Design](./desing/ui-ux-design.md); use Impeccable, then review the implementation |
 | Build a public product or company website | Start with Taste; use a visual reference if you need direction |
 | Organize a Spring Boot or Angular feature | Choose one of the [included skills](#skills-in-this-repository) |
@@ -238,7 +238,7 @@ npm ci
 npm run build:pages
 ```
 
-This regenerates the [offline HTML](./desing/guide-lines.html), prepares the GitHub Pages site, and validates local links and images. The [Pages workflow](./.github/workflows/pages.yml) rebuilds and deploys on relevant pushes to `main`; it also supports manual runs. See the [renderer and publishing guide](./desing/handbook/README.md) for setup and maintenance.
+This regenerates the [offline HTML](./desing/guide-lines.html), prepares a complete site, and validates local links and images. The [Pages workflow](./.github/workflows/pages.yml) validates relevant pushes to `main` and uploads a build artifact. The public handbook is hosted separately in [maxiplux-skills-handbook](https://github.com/maxiplux/maxiplux-skills-handbook). Use `npm run build:public` to prepare that limited public bundle, then copy it into the hosting repository and push. See the [renderer and publishing guide](./desing/handbook/README.md) for details.
 
 | Location | Contents |
 | --- | --- |
