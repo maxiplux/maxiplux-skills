@@ -75,6 +75,12 @@
 .reading pre { margin: 0; padding: 1.1rem 1.25rem; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .86rem; line-height: 1.7; }
 .reading .section-body > :first-child { margin-top: 0; }
 .reading .section-body > :last-child { margin-bottom: 0; }
+.section-quiz { scroll-margin-top: 5rem; }
+.quiz-kicker { margin: 0; text-transform: uppercase; letter-spacing: .12em; font: 700 .72rem Consolas, monospace; color: var(--color-secondary); }
+.quiz-question { margin: .85rem 0 0; font-size: 1.15rem; line-height: 1.35; }
+.quiz-option { border-color: var(--color-base-300); }
+.quiz-option[aria-pressed="true"] { outline: 3px solid color-mix(in oklab, var(--color-primary) 35%, transparent); outline-offset: 2px; }
+.quiz-feedback { min-height: 1.5rem; font-weight: 700; }
 .reading .collapse-title { font-size: 1.05rem; font-weight: 650; }
 .reading .collapse-content p { margin: .25rem 0 1rem; }
 .reading .demo-panel h4, .reading .choice-panel h4 { margin: 0; }

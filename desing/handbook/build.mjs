@@ -19,7 +19,14 @@ for (const chapter of chapters) {
     chapterLinks.set(chapter.file+'#'+slug, '#'+chapter.sections[i]?.[0]);
   });
 }
-let activeChapter, sectionIndex = 0, code = 0, figure = 0;
+let activeChapter, sectionIndex = 0, code = 0, figure = 0, quizCount = 0;
+
+function renderQuiz(sectionId, item) {
+  if (!item) throw new Error(`Add a quiz entry for ${activeChapter.file}#${sectionId}`);
+  const quizId = `quiz-${++quizCount}`;
+  const feedbackId = `${quizId}-feedback`;
+  return `<aside class="section-quiz card bg-base-200 border border-base-300 my-8" data-quiz="${quizId}" data-quiz-correct="${item.correct}"><div class="card-body p-5 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><p class="quiz-kicker">Check your understanding</p><span class="badge badge-outline">Quick quiz</span></div><h4 class="quiz-question" id="${quizId}-question">${escape(item.question)}</h4><div class="quiz-options grid gap-2 mt-3" role="group" aria-labelledby="${quizId}-question">${item.options.map((option, index) => `<button type="button" class="btn quiz-option justify-start text-left h-auto min-h-12 whitespace-normal" data-quiz-answer="${index}" aria-describedby="${feedbackId}" aria-pressed="false">${escape(option)}</button>`).join('')}</div><p class="quiz-feedback mt-3" id="${feedbackId}" role="status" aria-live="polite" aria-atomic="true"></p><p class="quiz-explanation text-sm mt-1 hidden">${escape(item.explanation)}</p></div></aside>`;
+}
 renderDiagrams(root);
 const markdown = new Marked({ gfm: true, renderer: {
   link({href,title,tokens}) {
@@ -80,10 +87,11 @@ let content = chapters.map((chapter, chapterIndex) => {
   const rendered = enhance(markdown.parse(fs.readFileSync(path.join(root,chapter.file),'utf8')));
   if (sectionIndex !== chapter.sections.length) throw new Error(`Navigation mismatch in ${chapter.file}`);
   const [intro, ...parts] = rendered.split(/(?=<h3 id=")/);
-  const sections = parts.map(part => {
+  const sections = parts.map((part, partIndex) => {
+    const entry = chapter.sections[partIndex];
     const match = part.match(/^<h3 id="([^"]+)" data-section>([\s\S]*?)<\/h3>/);
     if (!match) throw new Error('Unexpected section markup');
-    return `<section class="guide-section py-10 border-t border-base-300" aria-labelledby="${match[1]}">${match[0]}<div class="section-body">${part.slice(match[0].length)}</div></section>`;
+    return `<section class="guide-section py-10 border-t border-base-300" aria-labelledby="${match[1]}">${match[0]}<div class="section-body">${part.slice(match[0].length)}</div>${renderQuiz(entry[0], entry[2])}</section>`;
   }).join('\n');
   const next = chapters[chapterIndex+1];
   return `<section class="chapter" aria-labelledby="${chapter.id}"><header class="chapter-heading"><p class="chapter-number">Part ${chapterIndex+1} / 3</p>${intro}</header>${sections}${next?`<a href="#${next.id}" class="chapter-next no-print">Next Part: ${next.title} →</a>`:''}</section>`;
@@ -102,4 +110,4 @@ if (result.status !== 0) throw new Error('Stylesheet compilation failed');
 const output = shell.replace(/<!-- PART:[\s\S]*?<!-- END:[^>]+ -->/g, '').replace('<!-- STYLES -->', `<style>${read('.compiled.css')}</style>`).replace('<!-- NAVIGATION -->', nav).replace('<!-- CONTENT -->', content);
 if (/<!-- [A-Z_]+ -->/.test(output)) throw new Error('Unresolved build placeholder');
 fs.writeFileSync(path.join(root, 'guide-lines.html'), output.trimEnd() + '\n');
-console.log(`Built guide-lines.html: ${chapters.length} parts, ${chapters.flatMap(c=>c.sections).length} sections, ${figure} visuals, ${code} copyable examples, ${(Buffer.byteLength(output)/1024/1024).toFixed(1)} MB. All reading assets embedded.`);
+console.log(`Built guide-lines.html: ${chapters.length} parts, ${chapters.flatMap(c=>c.sections).length} sections, ${quizCount} quizzes, ${figure} visuals, ${code} copyable examples, ${(Buffer.byteLength(output)/1024/1024).toFixed(1)} MB. All reading assets embedded.`);

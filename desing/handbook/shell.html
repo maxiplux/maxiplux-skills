@@ -71,6 +71,7 @@
     <form method="dialog" class="modal-backdrop"><button aria-label="Close illustration viewer">Close</button></form>
   </dialog>
   <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
+  <p id="quiz-status" class="sr-only" role="status" aria-live="polite"></p>
   <script>
     'use strict';
     const byId = id => document.getElementById(id);
@@ -161,6 +162,28 @@
     }
     byId('goal-select').addEventListener('change', () => updateRecommendation(true));
     updateRecommendation();
+    const quizState = new Set();
+    function answerQuiz(button) {
+      const quiz = button.closest('[data-quiz]');
+      const answer = Number(button.dataset.quizAnswer);
+      const correct = answer === Number(quiz.dataset.quizCorrect);
+      const feedback = quiz.querySelector('.quiz-feedback');
+      const explanation = quiz.querySelector('.quiz-explanation');
+      quiz.querySelectorAll('.quiz-option').forEach(option => {
+        option.setAttribute('aria-pressed', String(option === button));
+        option.classList.remove('btn-success', 'btn-error');
+      });
+      button.classList.add(correct ? 'btn-success' : 'btn-error');
+      feedback.textContent = correct ? 'Correct.' : 'Not quite yet.';
+      feedback.className = `quiz-feedback mt-3 ${correct ? 'text-success' : 'text-error'}`;
+      explanation.classList.remove('hidden');
+      if (correct) quizState.add(quiz.dataset.quiz);
+      byId('quiz-status').textContent = `${quizState.size} of ${document.querySelectorAll('[data-quiz]').length} quizzes answered correctly.`;
+    }
+    document.addEventListener('click', event => {
+      const button = event.target.closest('[data-quiz-answer]');
+      if (button) answerQuiz(button);
+    });
 
     const states = {
       loaded: {

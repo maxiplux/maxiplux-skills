@@ -1,15 +1,26 @@
+const quiz = (question, options, correct, explanation) => ({ question, options, correct, explanation });
+
 export const chapters = [
   { id: 'ui-ux', title: 'UI / UX & Design', file: 'ui-ux-design.md', question: 'Can a person understand and complete the task?', sections: [
-    ['start', 'Choose the Job'], ['examples', 'Visual Foundations'], ['states', 'Forms & States'],
-    ['tools', 'Compare UI Skills'], ['install', 'Install UI Skills'], ['combine', 'Combine UI Skills'],
-    ['prompts', 'Copy a UI Brief'], ['ui-review', 'Review & Common Questions']
+    ['start', 'Choose the Job', quiz('What should you clarify before choosing a visual tool?', ['The user, task, and failure paths', 'The newest framework', 'The longest color palette'], 0, 'A clear task and its failure paths give every design decision a useful target.')],
+    ['examples', 'Visual Foundations', quiz('What makes a status message easier to understand?', ['A text label plus a visual cue', 'Color alone', 'An animation with no text'], 1, 'Pairing a readable label with a visual cue helps more people notice and interpret the state.')],
+    ['states', 'Forms & States', quiz('What should an error state do?', ['Clear the whole form', 'Preserve useful input and explain the correction', 'Hide the message after one second'], 1, 'Good error recovery keeps the user’s work and gives a specific next step.')],
+    ['tools', 'Compare UI Skills', quiz('Which resource is best for checking a web interface against accessibility and usability guidance?', ['A random screenshot', 'Web Design Guidelines', 'A color-name list'], 1, 'Web Design Guidelines gives structured interface checks that can be applied during review.')],
+    ['install', 'Install UI Skills', quiz('Why install a UI skill?', ['It gives the agent reusable guidance', 'It replaces product requirements', 'It guarantees perfect copy'], 0, 'A skill packages repeatable guidance so the agent can apply the same quality bar consistently.')],
+    ['combine', 'Combine UI Skills', quiz('When should you combine UI skills?', ['When each tool has a specific job in the same change', 'Whenever more tools are available', 'Only after shipping'], 0, 'Combine skills when their responsibilities are clear and together cover the work you need.')],
+    ['prompts', 'Copy a UI Brief', quiz('What belongs in a useful UI brief?', ['Audience, task, constraints, states, and acceptance checks', 'Only a color preference', 'A list of unrelated screenshots'], 0, 'A compact brief gives the agent the context and checks needed to produce a usable result.')],
+    ['ui-review', 'Review & Common Questions', quiz('What best proves an interface is usable?', ['A person can complete and recover from the real task', 'The page has many components', 'The source code is short'], 0, 'Usability is demonstrated by successful task completion, including recovery from mistakes.')]
   ]},
   { id: 'ai-agents', title: 'AI Agents', file: 'ai-agents.md', question: 'What should the model decide, and what must code control?', sections: [
-    ['agents', 'Coding vs Runtime Agents'], ['agent-loop', 'Tools, Context & Control'],
-    ['spring-ai', 'Spring AI in Practice'], ['agent-checks', 'Evaluate & Operate']
+    ['agents', 'Coding vs Runtime Agents', quiz('What is the difference between a coding agent and a runtime agent?', ['One changes software; the other runs inside the product', 'They are identical after deployment', 'Both only generate documentation'], 0, 'Coding agents help build software, while runtime agents participate in a product’s live behavior.')],
+    ['agent-loop', 'Tools, Context & Control', quiz('Who should own authorization for agent tool calls?', ['Application code', 'The language model alone', 'A prompt comment'], 0, 'The application must enforce permissions and validate tool inputs; the model can propose actions.')],
+    ['spring-ai', 'Spring AI in Practice', quiz('What should an agent create before saving a user-facing record?', ['An editable draft', 'An irreversible side effect', 'A hidden database migration'], 0, 'A draft gives the user and application a review point before a consequential change is committed.')],
+    ['agent-checks', 'Evaluate & Operate', quiz('What makes an agent evaluation useful?', ['Representative success and failure cases with expected behavior', 'Only one happy-path prompt', 'A larger model name'], 0, 'Good evaluations exercise normal and failure paths and define what the system should do.')]
   ]},
   { id: 'software-architecture', title: 'Software Architecture', file: 'software-architecture.md', question: 'Who owns the behavior, data and failure paths?', sections: [
-    ['spring-vsa', 'Feature Boundaries & VSA'], ['request-flow', 'Trace a Request'],
-    ['spring-install', 'Install & Combine Skills'], ['delivery', 'Deliver One Complete Feature']
+    ['spring-vsa', 'Feature Boundaries & VSA', quiz('In vertical slice architecture, what belongs together?', ['The code owned by one business feature', 'Every database table', 'Only shared utilities'], 0, 'A vertical slice keeps the behavior for one feature close together across its layers.')],
+    ['request-flow', 'Trace a Request', quiz('Where should a business rule usually live?', ['In the feature’s use-case handler', 'In a controller annotation', 'In a CSS file'], 0, 'The use-case boundary coordinates the business decision while adapters handle transport details.')],
+    ['spring-install', 'Install & Combine Skills', quiz('What should you verify before copying a Spring skill into a project?', ['That its versions and stack match the project', 'That it has the most files', 'That its examples use the same colors'], 0, 'Compatibility with the project’s versions and architecture prevents misleading guidance and broken builds.')],
+    ['delivery', 'Deliver One Complete Feature', quiz('What is the safest sequence for a generated invoice?', ['Extract a draft, review it, then explicitly save', 'Save immediately, then ask for review', 'Generate it only in the browser'], 0, 'Separating draft creation from an explicit save keeps side effects visible and reviewable.')]
   ]}
 ];
