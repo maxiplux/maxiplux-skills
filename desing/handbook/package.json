@@ -1,0 +1,16 @@
+{
+  "name": "design-handbook-renderer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:pages": "node build.mjs && node pages.mjs",
+    "check": "node pages.mjs --check"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.4",
+    "daisyui": "5.7.50",
+    "marked": "18.1.3",
+    "tailwindcss": "4.3.4"
+  }
+}

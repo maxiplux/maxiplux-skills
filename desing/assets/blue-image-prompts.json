@@ -1,0 +1,29 @@
+{
+  "mode": "Built-in image_gen; two image edits and one new generation",
+  "date": "2026-11-05",
+  "outputs": [
+    "./invoices-before-after-blue.png",
+    "./website-or-app-blue.png",
+    "./spring-skills.png"
+  ],
+  "prompts": [
+    {
+      "key": "invoices-blue",
+      "paths": [
+        "D:/IdeaProjects/maxiplux-skills/maxiplux-skills/desing/assets/invoices-before-after.png"
+      ],
+      "prompt": "Edit this existing teaching infographic. Keep every word, number, invoice value, layout, typography, callout connector and UI component in place. Change the overall palette from teal/terracotta/cream to cobalt blue, light sky blue, deep navy and cool white. Use deep navy #132f55 for text, cobalt #245bd6 for main actions and callout numbers, pale blue #e7f0ff for callout surfaces, cool white #f8fbff background. Recolor decorative coral and teal accents blue. Keep green Paid, amber/orange Overdue and grey Draft semantic status differences with their existing text labels. Preserve the exact two-panel before/after educational meaning, legibility, margins and 3:2 wide format. No added content, no logos, no cropping."
+    },
+    {
+      "key": "website-blue",
+      "paths": [
+        "D:/IdeaProjects/maxiplux-skills/maxiplux-skills/desing/assets/website-or-app.png"
+      ],
+      "prompt": "Edit this existing educational illustration to a blue theme: deep navy text and outlines, cobalt blue main buttons and decorative accents, pale sky blue panels, cool white background. Preserve all existing tool names, headings, the two browser panels and all main captions exactly. Make one teaching correction: in the right WORKING APPLICATION browser, remove the small 'No invoices yet.' panel below the populated invoice table; leave that area as uncluttered neutral space so it no longer shows an empty and populated state at once. Preserve every other UI element and label. Keep text crisp and highly legible. No logos, no cropping; retain wide 3:2 format."
+    },
+    {
+      "key": "spring-skills",
+      "prompt": "Use case: infographic-diagram. Create an educational illustration for a backend developer handbook comparing two local coding-agent skills. Landscape 3:2 wide composition. Style is precise flat editorial illustration with readable text, deep navy #132f55, cobalt blue #245bd6, light sky blue #e7f0ff and cool white; generous whitespace, no decorative people or robots. Exact title: 'Two skills. One backend.' Left panel: heading 'ORGANIZE THE FEATURE', name 'spring-boot-vsa'. Show a large folder labelled 'invoice' containing three orderly file groups labelled 'api', 'handlers', 'model'. Under it, caption 'Put one feature together.' Right panel: heading 'ADD THE AI BEHAVIOR', name 'spring-boot-ai'. Show a document labelled 'Invoice text' flowing by an arrow into a simple chip labelled 'ChatClient', then another arrow into a structured document labelled 'Java record'. Under it, caption 'Turn model output into typed data.' Connect the two panels only with a small plus mark between them. At bottom a shared band exactly 'Together: an AI use case inside a feature slice'. This is a conceptual teaching diagram, not a screenshot or performance claim. All text must be rendered verbatim and large enough to read; no extra code or invented facts, no logos, no watermarks."
+    }
+  ]
+}

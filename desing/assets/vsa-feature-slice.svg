@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
+  <title id="title">VSA puts the code for one feature together</title>
+  <desc id="description">A layered layout spreads invoice code across controllers, services and repositories. A vertical slice groups invoice API contracts, use case handlers and persistence model under features/invoice. Shared contains only code genuinely reused by multiple features.</desc>
+  <defs>
+    <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#132f55}.title{font-size:38px;font-weight:700}.label{font-size:17px;font-weight:700;letter-spacing:2px}.heading{font-size:25px;font-weight:700}.body{font-size:22px}.mono{font-family:Consolas,monospace;font-size:20px}.small{font-size:18px}.white{fill:white}</style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#245bd6"/></marker>
+  </defs>
+  <rect width="1200" height="760" rx="24" fill="#f8fbff"/>
+  <text x="48" y="64" class="title">Where does the invoice code live?</text>
+  <text x="48" y="103" class="body">VSA = Vertical Slice Architecture. Organize around a feature's use cases.</text>
+  <rect x="40" y="142" width="478" height="483" rx="18" fill="white" stroke="#c2d3ed" stroke-width="2"/>
+  <text x="67" y="180" class="label">GROUPED BY TECHNICAL LAYER</text>
+  <rect x="65" y="205" width="428" height="116" rx="10" fill="#edf3fc"/>
+  <text x="84" y="236" class="heading">controllers/</text>
+  <text x="84" y="271" class="mono">InvoiceController</text>
+  <text x="84" y="301" class="mono">CustomerController</text>
+  <rect x="65" y="335" width="428" height="116" rx="10" fill="#edf3fc"/>
+  <text x="84" y="366" class="heading">services/</text>
+  <text x="84" y="401" class="mono">InvoiceService</text>
+  <text x="84" y="431" class="mono">CustomerService</text>
+  <rect x="65" y="465" width="428" height="116" rx="10" fill="#edf3fc"/>
+  <text x="84" y="496" class="heading">repositories/</text>
+  <text x="84" y="531" class="mono">InvoiceRepository</text>
+  <text x="84" y="561" class="mono">CustomerRepository</text>
+  <path d="M538 380 H600" fill="none" stroke="#245bd6" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="628" y="142" width="532" height="483" rx="18" fill="#e7f0ff" stroke="#245bd6" stroke-width="2"/>
+  <path d="M646 142 H1142 Q1160 142 1160 160 V207 H628 V160 Q628 142 646 142" fill="#245bd6"/>
+  <text x="655" y="183" class="heading white">features/invoice/</text>
+  <path d="M661 238 V567 M661 250 H683 M661 350 H683 M661 470 H683" fill="none" stroke="#7da3e9" stroke-width="3"/>
+  <text x="697" y="254" class="heading">api/</text>
+  <text x="697" y="288" class="mono">InvoiceController</text>
+  <text x="697" y="316" class="small">request and response records</text>
+  <text x="697" y="354" class="heading">handlers/</text>
+  <text x="697" y="389" class="mono">CreateInvoiceHandler</text>
+  <text x="697" y="419" class="mono">GetInvoiceHandler</text>
+  <text x="697" y="447" class="small">one handler per use case</text>
+  <text x="697" y="478" class="heading">model/</text>
+  <text x="697" y="513" class="mono">Invoice · InvoiceRepository</text>
+  <text x="697" y="541" class="small">persistence and mapping</text>
+  <text x="655" y="595" class="small">features/customer/ is a separate slice.</text>
+  <rect x="40" y="650" width="1120" height="72" rx="14" fill="#132f55"/>
+  <text x="64" y="680" class="heading white">shared/ is for real reuse.</text>
+  <text x="64" y="708" class="small white">Keep feature-specific code in its slice. Move common code when multiple slices need it.</text>
+</svg>

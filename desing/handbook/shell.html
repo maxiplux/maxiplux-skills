@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en" data-theme="handbook">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fbff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23245bd6'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='42' fill='white'%3EM%3C/text%3E%3C/svg%3E">
+  <meta name="description" content="An illustrated guide to UI/UX, AI agents, and software architecture. Choose skills, follow practical examples, and build one complete feature with Spring Boot and Angular.">
+  <title>Design without guessing · Maxiplux Skills</title>
+  <!-- STYLES -->
+</head>
+<body class="bg-base-100 text-base-content">
+  <a class="skip-link" href="#main">Skip to handbook</a>
+  <aside class="sidebar hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-neutral text-neutral-content p-6 overflow-y-auto">
+    <a href="#main" class="font-semibold text-lg leading-tight mb-1">Design without<br>guessing<span class="text-accent">.</span></a>
+    <p class="text-neutral-content/70 text-xs mt-2 mb-6">A practical guide to building software</p>
+    <p class="text-xs uppercase tracking-widest text-neutral-content/70 mb-3">Three Connected Parts</p>
+    <nav aria-label="Handbook sections"><!-- NAVIGATION --></nav>
+    <div class="mt-auto pt-10 text-xs text-neutral-content/65">
+      <p>Read it. Try an example.<br>Give your agent a specific task.</p>
+      <p class="mt-4">Maxiplux Skills · November 2026</p>
+    </div>
+  </aside>
+  <main id="main" class="lg:ml-64 px-5 sm:px-10 xl:px-16 max-w-[1600px] pb-16">
+    <div class="no-print flex flex-wrap items-center justify-between gap-3 py-5 border-b border-base-300">
+      <span class="text-xs font-mono uppercase tracking-widest">Maxiplux Skills / Field guide</span>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="hidden sm:inline text-xs opacity-65">Works offline · nothing to install to read</span>
+        <a class="btn btn-sm" href="./guide-lines.html" download>Download HTML</a>
+        <button id="print-button" class="btn btn-sm" type="button">Print / Save PDF</button>
+      </div>
+    </div>
+    <header class="py-10 sm:py-14 max-w-5xl">
+      <p class="text-xs uppercase tracking-[0.2em] font-semibold text-secondary mb-5">One Product · Three Kinds of Decisions</p>
+      <h1 class="text-5xl sm:text-6xl xl:text-7xl font-bold tracking-[-0.055em] leading-[1.04] max-w-[12ch]">Design Without<br>Guessing.</h1>
+      <p class="text-lg sm:text-xl mt-6 max-w-[57ch] leading-relaxed">Make the screen usable. Bound the AI behavior.<br class="hidden sm:block"> Keep the software understandable.</p>
+      <p class="mt-4 max-w-[70ch] text-base-content/75">No design background needed. Choose a part below and follow the same invoice example from a user task to an AI-generated draft and a deliberate database write. Open any visual to inspect its details.</p>
+      <nav aria-label="Choose a handbook part" class="grid sm:grid-cols-3 gap-4 mt-8">
+        <a href="#ui-ux" class="topic-card card"><div class="card-body p-5"><span class="font-mono text-sm text-secondary">01 / THE EXPERIENCE</span><span class="font-bold text-xl leading-tight">UI / UX & Design</span><span class="text-sm">Task, layout, forms, accessibility & review.</span><span class="text-sm font-semibold mt-2">Explore Design →</span></div></a>
+        <a href="#ai-agents" class="topic-card card"><div class="card-body p-5"><span class="font-mono text-sm text-secondary">02 / THE BEHAVIOR</span><span class="font-bold text-xl leading-tight">AI Agents</span><span class="text-sm">Coding vs runtime, tools, context & evaluation.</span><span class="text-sm font-semibold mt-2">Explore Agents →</span></div></a>
+        <a href="#software-architecture" class="topic-card card"><div class="card-body p-5"><span class="font-mono text-sm text-secondary">03 / THE STRUCTURE</span><span class="font-bold text-xl leading-tight">Software Architecture</span><span class="text-sm">Slices, contracts, transactions & failures.</span><span class="text-sm font-semibold mt-2">Explore Architecture →</span></div></a>
+      </nav>
+    </header>
+    <nav aria-label="Switch handbook part" class="mobile-part-nav no-print lg:hidden sticky top-0 z-20 grid grid-cols-3 gap-2 py-3 bg-base-100 border-y border-base-300">
+      <a class="btn btn-sm" href="#ui-ux">Design</a>
+      <a class="btn btn-sm" href="#ai-agents">Agents</a>
+      <a class="btn btn-sm" href="#software-architecture">Architecture</a>
+    </nav>
+    <article class="reading max-w-6xl"><!-- CONTENT --></article>
+    <footer class="border-t border-base-300 pt-7 text-sm">
+      <p>Start with one user task. Give each skill a clear job. Check the result.</p>
+      <a href="#main" class="no-print underline underline-offset-4 inline-block mt-3">Back to the beginning ↑</a>
+    </footer>
+  </main>
+  <dialog id="image-viewer" class="modal image-modal" aria-labelledby="viewer-title" aria-describedby="viewer-description">
+    <div class="modal-box bg-base-100">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h2 id="viewer-title" class="font-bold text-lg">Illustration Detail</h2>
+        <form method="dialog"><button class="btn btn-sm" id="viewer-close">Close</button></form>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-3" role="group" aria-label="Illustration view controls">
+        <button class="btn btn-sm" type="button" id="viewer-fit" aria-pressed="true">Fit to View</button>
+        <button class="btn btn-sm" type="button" id="viewer-actual" aria-pressed="false">Full Size</button>
+        <a class="btn btn-sm" id="viewer-save" download>Save Image</a>
+      </div>
+      <div id="viewer-scroll" class="image-scroll" data-scale="fit" tabindex="0" role="region" aria-label="Illustration; use arrow keys to scroll at full size">
+        <img id="viewer-image" alt="" width="1" height="1">
+      </div>
+      <p class="viewer-description" id="viewer-description"></p>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button aria-label="Close illustration viewer">Close</button></form>
+  </dialog>
+  <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
+  <script>
+    'use strict';
+    const byId = id => document.getElementById(id);
+    function writeUrlState(key, value) {
+      const url = new URL(location.href);
+      if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
+      try { history.replaceState(null, '', url); } catch (_) { /* Some local-file hosts restrict history writes. */ }
+    }
+    const recommendations = {
+      app: {
+        title: 'Start with Impeccable.',
+        reason: 'You are helping someone complete a task. Start with one screen, the existing components, and the states your API can return.',
+        next: 'Then review the UI code with Web Design Guidelines.',
+        skip: 'You can skip Taste and external references while the app already has a clear visual system.',
+        prompt: 'Use Impeccable to design the invoices screen for our application. Main tasks: find overdue invoices and create one. Keep our framework, component library, routes, and API contracts. Include loading, empty, validation, failure, and permission states.'
+      },
+      marketing: {
+        title: 'Start with Taste Skill.',
+        reason: 'You are helping a visitor understand a product and decide to try it. Give the agent an audience, value proposition, and one main action.',
+        next: 'Optionally choose a getdesign.md reference first; review the resulting code with Web Design Guidelines.',
+        skip: 'You do not need Impeccable unless there is a specific refinement you want. It can also lead this work if you already use it.',
+        prompt: 'Use design-taste-frontend to build the public site for our invoice API. Audience: developers. Goal: understand the product and try the sandbox. Keep our framework and brand rules. Use real product information and check the running page.'
+      },
+      refine: {
+        title: 'Start with an Impeccable critique.',
+        reason: 'Name the screen and what the user must do. The agent can explain the most important issues before changing the design.',
+        next: 'Choose one problem, apply a focused fix, and check the same task again.',
+        skip: 'You do not need a new visual system to fix a crowded form.',
+        prompt: '$impeccable critique the invoices screen. Can a new user find an overdue invoice and create one? Explain the three most important problems in plain language with concrete fixes. Keep our brand and working behavior. Review first.'
+      },
+      reference: {
+        title: 'Browse getdesign.md.',
+        reason: 'Pick one relevant visual reference. Explain which ideas you like: spacing, typography, color, or layout.',
+        next: 'Give that reference to your chosen building tool: Taste for a site, or Impeccable for an application screen.',
+        skip: 'There is no catalog skill to install. Keep the reference separate from your own design rules.',
+        prompt: 'Use the selected design reference for spacing and typography inspiration. Keep our product content, component library, and existing brand rules. Explain what you plan to borrow before implementing it.'
+      },
+      review: {
+        title: 'Use Web Design Guidelines.',
+        reason: 'Give the agent actual UI files or a file pattern so it can inspect implementation details against current rules.',
+        next: 'Review findings, apply the relevant fixes, and verify the behavior in the browser.',
+        skip: 'You do not need a redesign when the request is a focused code review.',
+        prompt: 'Use the installed web-design-guidelines skill to review the invoice UI files. Fetch current guidelines. Report actionable file:line findings for labels, focus, forms, keyboard support, and responsive behavior. Review first.'
+      },
+      vsa: {
+        title: 'Start with spring-boot-vsa.',
+        reason: 'You are organizing backend behavior. Keep invoice API contracts, use-case handlers and persistence together in a feature slice.',
+        next: 'Choose scaffold for a new feature, audit for findings, or refactor for an existing structure.',
+        skip: 'A normal CRUD feature does not need a model or the Spring AI runtime.',
+        install: '#spring-install',
+        prompt: 'Use spring-boot-vsa in audit mode for the invoice feature. Check controller/handler boundaries, DTO records, transactions, bounded queries, error handling and OpenAPI examples. Give Blocker / Major / Minor findings with file:line evidence. Review first; do not change files yet.'
+      },
+      ai: {
+        title: 'Use spring-boot-ai for the AI behavior.',
+        reason: 'A model can turn invoice text into proposed fields. Use ChatClient, external prompt templates and a Java record for the output.',
+        next: 'Validate the fields and return an editable draft. Handle provider and conversion failures.',
+        skip: 'Keep arithmetic, access checks and deterministic validation in ordinary Java code.',
+        install: '#spring-install',
+        prompt: 'Use spring-boot-ai to add invoice extraction to the existing handler. Inspect our pinned versions. Use ChatClient, an external prompt and typed output. Validate the result and return an editable draft without persisting it. Preserve our architecture, error contract, framework and migration tool.'
+      },
+      backend: {
+        title: 'Combine VSA and Spring AI with clear scopes.',
+        reason: 'VSA organizes the feature; the AI references guide the prompt, model integration and output mapping inside its use case.',
+        next: 'Agree on the API contract first. Build the backend, then use Impeccable for the draft-review screen.',
+        skip: 'Their general Spring guidance overlaps. Set one error and logging policy and preserve the project’s declared stack.',
+        install: '#spring-install',
+        prompt: 'Use spring-boot-vsa for the invoice extraction slice, handlers and HTTP boundaries. Use spring-boot-ai for the model call, external prompt and typed output. Preserve our stack and agreed logging/error policy. Return a validated, editable draft; saving is a separate action. Then use Impeccable for the UI states.'
+      },
+      runtime: {
+        title: 'First decide whether you need an agent loop.',
+        reason: 'One model call or a fixed workflow may already solve the task. A runtime agent chooses tools and next steps based on observations.',
+        next: 'Define allowed tools, authorization, approval rules, stop conditions and evaluation cases before implementation.',
+        skip: 'Installing a coding skill does not build a runtime agent or grant access to your application.',
+        install: '#spring-install',
+        prompt: 'Inspect this runtime AI use case. Compare ordinary code, one model call, a fixed workflow and an agent loop. Define inputs, output contract, tools, permissions, stop conditions and evaluation cases. Keep our explicit approval and idempotency rules for writes.'
+      }
+    };
+    function updateRecommendation(persist = false) {
+      const result = recommendations[byId('goal-select').value];
+      byId('recommendation-title').textContent = result.title;
+      byId('recommendation-reason').textContent = result.reason;
+      byId('recommendation-next').textContent = result.next;
+      byId('recommendation-skip').textContent = result.skip;
+      byId('recommendation-prompt').textContent = result.prompt;
+      byId('recommendation-install').href = result.install || '#install';
+      byId('recommendation-guide').href = {vsa:'#spring-vsa',ai:'#spring-ai',backend:'#delivery',runtime:'#agent-loop'}[byId('goal-select').value] || '#tools';
+      if (persist) writeUrlState('goal', byId('goal-select').value === 'app' ? '' : byId('goal-select').value);
+    }
+    byId('goal-select').addEventListener('change', () => updateRecommendation(true));
+    updateRecommendation();
+
+    const states = {
+      loaded: {
+        signal: '200 OK · records returned',
+        lesson: 'Use clear column labels and readable status text. Make the next action easy to find.',
+        markup: '<div class="flex justify-between items-center gap-3 mb-4"><h3>Invoices</h3><button class="btn btn-sm" data-demo-action="validation">New invoice</button></div><div class="overflow-x-auto"><table class="table"><thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead><tbody><tr><td>INV-104</td><td>Acme</td><td class="tabular-nums">$240</td><td><span class="badge badge-success">Paid</span></td></tr><tr><td>INV-105</td><td>North</td><td class="tabular-nums">$480</td><td><span class="badge badge-warning">Overdue</span></td></tr></tbody></table></div>'
+      },
+      loading: {
+        signal: 'GET /invoices · pending',
+        lesson: 'Keep the layout stable and say what is happening. A pending request is not an empty result.',
+        markup: '<h3>Invoices</h3><p role="status">Loading invoices…</p><div class="space-y-4 mt-7" aria-hidden="true"><div class="h-8 bg-base-200 rounded-field"></div><div class="h-8 bg-base-200 rounded-field"></div><div class="h-8 bg-base-200 rounded-field"></div></div>'
+      },
+      empty: {
+        signal: '200 OK · []',
+        lesson: 'An empty state explains the situation and gives a useful first action.',
+        markup: '<div class="py-6 text-center"><span class="text-4xl" aria-hidden="true">▤</span><h3 class="mt-3!">No invoices yet</h3><p>Create an invoice to start tracking payments.</p><button class="btn mt-4" data-demo-action="validation">Create your first invoice</button></div>'
+      },
+      noresults: {
+        signal: '200 OK · filters matched 0 records',
+        lesson: 'No matching results and no data yet need different explanations.',
+        markup: '<div class="py-8 text-center"><h3>No invoices match these filters</h3><p>Try a different status or customer.</p><button class="btn mt-4" data-demo-action="loaded">Clear filters</button></div>'
+      },
+      validation: {
+        signal: '422 example · field validation failed',
+        lesson: 'Explain the correction beside the field. Keep the values the user already entered.',
+        markup: '<h3>Create invoice</h3><p class="text-sm opacity-70">Illustrative form values</p><div class="mt-5 grid gap-4 sm:grid-cols-2"><div><p class="text-sm font-semibold">Customer</p><div class="demo-field">Acme Ltd</div></div><div><p class="text-sm font-semibold">Amount</p><div class="demo-field invalid">$0.00</div><p class="text-sm text-error-content">Enter an amount greater than zero.</p></div></div><p class="text-sm mt-5!">Customer details stay intact while you fix the amount.</p>'
+      },
+      error: {
+        signal: '503 example · invoice list unavailable',
+        lesson: 'Give a useful recovery action. This example retries a read; writes need deliberate duplicate protection.',
+        markup: '<div class="py-7"><span class="badge badge-error mb-4">Could not load</span><h3>We could not load your invoices</h3><p>Please try again. Your saved invoices are unchanged.</p><button class="btn mt-4" data-demo-action="retry">Try again</button></div>'
+      },
+      forbidden: {
+        signal: '403 example · permission denied',
+        lesson: 'Explain the access restriction. Retrying the same unauthorized request will not resolve it.',
+        markup: '<div class="py-8"><span class="badge badge-warning mb-4">Access restricted</span><h3>You do not have access to invoices</h3><p>Ask your workspace administrator for the billing role.</p><p class="text-sm opacity-70">Use your product’s actual access-request process.</p></div>'
+      }
+    };
+    let retryTimer;
+    function showState(key, moveFocus, persist = false) {
+      clearTimeout(retryTimer);
+      const state = states[key];
+      byId('state-signal').textContent = state.signal;
+      byId('state-lesson').textContent = state.lesson;
+      byId('state-preview').innerHTML = state.markup.replaceAll('<h3', '<h4').replaceAll('</h3>', '</h4>');
+      document.querySelectorAll('[data-state]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.state === key)));
+      if (moveFocus) byId('state-preview').focus({preventScroll: true});
+      if (persist) writeUrlState('demo', key === 'loaded' ? '' : key);
+    }
+    let viewerTrigger;
+    function setImageScale(scale) {
+      byId('viewer-scroll').dataset.scale = scale;
+      byId('viewer-fit').setAttribute('aria-pressed', String(scale === 'fit'));
+      byId('viewer-actual').setAttribute('aria-pressed', String(scale === 'actual'));
+      byId('viewer-scroll').scrollTo(0, 0);
+    }
+    byId('viewer-fit').addEventListener('click', () => setImageScale('fit'));
+    byId('viewer-actual').addEventListener('click', () => setImageScale('actual'));
+    byId('image-viewer').addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        byId('image-viewer').close();
+      }
+    });
+    byId('image-viewer').addEventListener('close', () => viewerTrigger?.focus({preventScroll:true}));
+    document.addEventListener('click', async event => {
+      const imageButton = event.target.closest('[data-open-image]');
+      if (imageButton) {
+        viewerTrigger = imageButton;
+        const preview = imageButton.querySelector('img');
+        const image = byId('viewer-image');
+        image.src = preview.src; image.alt = preview.alt;
+        image.width = Number(preview.getAttribute('width')); image.height = Number(preview.getAttribute('height'));
+        image.style.setProperty('--image-width', preview.getAttribute('width') + 'px');
+        byId('viewer-description').textContent = preview.alt;
+        byId('viewer-save').href = preview.src;
+        byId('viewer-save').download = imageButton.dataset.openImage;
+        setImageScale('fit');
+        byId('image-viewer').showModal();
+        byId('viewer-close').focus({preventScroll:true});
+      }
+      if (event.target.closest('summary')) requestAnimationFrame(() => writeUrlState('open', Array.from(document.querySelectorAll('article details[open]')).map(d=>d.id).join(',')));
+      const stateButton = event.target.closest('[data-state]');
+      if (stateButton) showState(stateButton.dataset.state, false, true);
+      const actionButton = event.target.closest('[data-demo-action]');
+      if (actionButton) {
+        if (actionButton.dataset.demoAction === 'retry') {
+          showState('loading', true, true);
+          retryTimer = setTimeout(() => showState('loaded', false, true), 700);
+        } else showState(actionButton.dataset.demoAction, true, true);
+      }
+      const copyButton = event.target.closest('[data-copy]');
+      if (!copyButton) return;
+      const target = byId(copyButton.dataset.copy);
+      const value = target.textContent;
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+          copied = true;
+        }
+      } catch (_) { /* Local-file clipboard support varies by browser. */ }
+      if (!copied) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+        if (copied) selection.removeAllRanges();
+      }
+      const old = copyButton.textContent;
+      copyButton.textContent = copied ? 'Copied ✓' : 'Selected · press Ctrl+C';
+      byId('copy-status').textContent = '';
+      requestAnimationFrame(() => { byId('copy-status').textContent = copied ? 'Copied to clipboard.' : 'Text selected. Press Ctrl+C, or Command+C on Mac, to copy.'; });
+      setTimeout(() => { copyButton.textContent = old; }, 2200);
+    });
+    function readUrlState() {
+      const query = new URL(location.href).searchParams;
+      const goal = query.get('goal');
+      byId('goal-select').value = Object.hasOwn(recommendations, goal) ? goal : 'app';
+      updateRecommendation();
+      const demo = query.get('demo');
+      showState(Object.hasOwn(states, demo) ? demo : 'loaded', false);
+      const open = new Set((query.get('open') || '').split(','));
+      document.querySelectorAll('article details').forEach(d => { d.open = open.has(d.id); });
+    }
+    readUrlState();
+    addEventListener('popstate', readUrlState);
+
+    const navLinks = Array.from(document.querySelectorAll('.sidebar nav a'));
+    const sectionHeadings = Array.from(document.querySelectorAll('.reading h2[id], .reading h3[data-section]'));
+    let navFramePending = false;
+    function updateCurrentSection() {
+      navFramePending = false;
+      let current = sectionHeadings[0];
+      for (const heading of sectionHeadings) {
+        if (heading.getBoundingClientRect().top <= innerHeight * 0.35) current = heading;
+      }
+      navLinks.forEach(link => {
+        if (link.hash === '#' + current.id) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    }
+    function scheduleNavigationUpdate() {
+      if (navFramePending) return;
+      navFramePending = true;
+      requestAnimationFrame(updateCurrentSection);
+    }
+    addEventListener('scroll', scheduleNavigationUpdate, {passive: true});
+    addEventListener('resize', scheduleNavigationUpdate);
+    updateCurrentSection();
+    let folded = [];
+    window.addEventListener('beforeprint', () => {
+      folded = Array.from(document.querySelectorAll('details:not([open])'));
+      folded.forEach(detail => { detail.open = true; });
+    });
+    window.addEventListener('afterprint', () => folded.forEach(detail => { detail.open = false; }));
+    byId('print-button').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>
+
+<!-- PART:TOOL_PICKER -->
+<div id="tool-picker" class="choice-panel my-7 border border-base-300 rounded-box overflow-hidden">
+  <div class="p-5 sm:p-7 bg-base-200">
+    <label for="goal-select" class="block text-sm font-semibold mb-3">What are you working on right now?</label>
+    <select id="goal-select" name="goal" class="select w-full max-w-full bg-base-100 text-base-content">
+      <option value="app">App / CRUD / admin dashboard</option>
+      <option value="marketing">Public website / landing page</option>
+      <option value="refine">Existing UI needs improvement</option>
+      <option value="reference">I need a visual reference</option>
+      <option value="review">Review UI code</option>
+      <option value="vsa">Organize or review a Spring feature</option>
+      <option value="ai">Add AI to an existing Spring feature</option>
+      <option value="backend">Build an AI feature and its screen</option>
+      <option value="runtime">Design an agent inside my product</option>
+    </select>
+  </div>
+  <div class="p-5 sm:p-7">
+    <div aria-live="polite" aria-atomic="true">
+      <p class="micro-title text-secondary">Your recommended next step</p>
+      <h4 id="recommendation-title">Start with Impeccable.</h4>
+      <p id="recommendation-reason"></p>
+      <p id="recommendation-next" class="font-semibold"></p>
+      <p id="recommendation-skip" class="text-sm text-base-content/75"></p>
+    </div>
+    <details class="collapse collapse-plus border border-base-300 mt-5">
+      <summary class="collapse-title">Show a prompt for this task</summary>
+      <div class="collapse-content">
+        <p id="recommendation-prompt" class="text-sm"></p>
+        <button class="btn btn-sm mt-3" type="button" data-copy="recommendation-prompt">Copy this prompt</button>
+      </div>
+    </details>
+    <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-sm"><a id="recommendation-guide" href="#tools">Read the Explanation →</a><a id="recommendation-install" href="#install">Installation Instructions →</a></div>
+  </div>
+</div>
+<noscript><p>The interactive picker requires JavaScript. The table below gives the same selection guidance.</p></noscript>
+<!-- END:TOOL_PICKER -->
+
+<!-- PART:DESIGN_VOCABULARY -->
+<div class="grid sm:grid-cols-3 gap-4 my-6" aria-label="Visual design vocabulary examples">
+  <div class="card card-border bg-base-100"><div class="card-body">
+    <div aria-hidden="true"><div class="text-3xl font-bold leading-tight">Invoices</div><div class="text-sm mt-2">Track and collect payments</div><div class="text-xs opacity-65 mt-2">Updated a moment ago</div></div>
+    <p class="micro-title mt-5!">Hierarchy</p><p class="text-sm">Important first.<br>Supporting details second.</p>
+  </div></div>
+  <div class="card card-border bg-base-100"><div class="card-body">
+    <div aria-hidden="true"><div class="h-3 w-16 bg-neutral rounded"></div><div class="h-7 bg-base-200 border border-base-300 rounded-field mt-2"></div><div class="h-3 w-24 bg-neutral rounded mt-6"></div><div class="h-7 bg-base-200 border border-base-300 rounded-field mt-2"></div></div>
+    <p class="micro-title mt-4!">Spacing</p><p class="text-sm">Small gap within a field.<br>Larger gap between fields.</p>
+  </div></div>
+  <div class="card card-border bg-base-100"><div class="card-body">
+    <div class="flex flex-wrap gap-2 min-h-24 items-center"><span class="badge badge-success">✓ Paid</span><span class="badge badge-warning">! Overdue</span></div>
+    <p class="micro-title mt-4!">Meaning</p><p class="text-sm">Words explain status.<br>Color reinforces it.</p>
+  </div></div>
+</div>
+<!-- END:DESIGN_VOCABULARY -->
+
+<!-- PART:STATE_PLAYGROUND -->
+<div id="state-playground" class="my-7 border border-base-300 rounded-box overflow-hidden">
+  <div class="p-5 bg-base-200">
+    <p class="micro-title">Try it: the same screen, different API states</p>
+    <div class="flex flex-wrap gap-2 mt-3" role="group" aria-label="Choose an example API state">
+      <button class="btn btn-sm" type="button" data-state="loaded" aria-pressed="true">Records</button>
+      <button class="btn btn-sm" type="button" data-state="loading" aria-pressed="false">Loading</button>
+      <button class="btn btn-sm" type="button" data-state="empty" aria-pressed="false">Empty</button>
+      <button class="btn btn-sm" type="button" data-state="noresults" aria-pressed="false">No results</button>
+      <button class="btn btn-sm" type="button" data-state="validation" aria-pressed="false">Validation</button>
+      <button class="btn btn-sm" type="button" data-state="error" aria-pressed="false">Server error</button>
+      <button class="btn btn-sm" type="button" data-state="forbidden" aria-pressed="false">No access</button>
+    </div>
+    <p class="text-xs opacity-75 mt-3!">Interactive illustration. No server calls or real invoices.</p>
+  </div>
+  <div class="grid xl:grid-cols-[1fr_16rem]">
+    <div id="state-preview" class="demo-panel min-w-0 min-h-72 p-5 sm:p-7" tabindex="-1" aria-label="Illustrative invoice interface"></div>
+    <div class="border-t xl:border-t-0 xl:border-l border-base-300 bg-base-200 p-5 sm:p-7" role="status" aria-live="polite" aria-atomic="true">
+      <p class="micro-title">Backend signal</p>
+      <p id="state-signal" class="font-mono text-sm break-words"></p>
+      <p class="micro-title mt-6!">Design decision</p>
+      <p id="state-lesson" class="text-sm"></p>
+    </div>
+  </div>
+</div>
+<p class="print-only">The browser edition includes a selectable state demo. The table below covers each state for print readers.</p>
+<!-- END:STATE_PLAYGROUND -->
+
+<!-- PART:WORKFLOW_RECIPES -->
+<div class="grid sm:grid-cols-4 gap-3 my-7" aria-label="Recommended four-step workflow">
+  <div class="border-l-4 border-neutral bg-base-200 p-4"><span class="font-mono text-xs">01 / BRIEF</span><div class="font-semibold mt-2">Name the task</div><p class="text-sm">Who is this for?<br>What must they do?</p></div>
+  <div class="border-l-4 border-secondary bg-base-200 p-4"><span class="font-mono text-xs">02 / BUILD</span><div class="font-semibold mt-2">Choose one lead</div><p class="text-sm">Taste for a site.<br>Impeccable for an app.</p></div>
+  <div class="border-l-4 border-neutral bg-base-200 p-4"><span class="font-mono text-xs">03 / REVIEW</span><div class="font-semibold mt-2">Inspect the result</div><p class="text-sm">Web Design Guidelines.<br>One focused fix.</p></div>
+  <div class="border-l-4 border-accent bg-base-200 p-4"><span class="font-mono text-xs">04 / VERIFY</span><div class="font-semibold mt-2">Try the actual task</div><p class="text-sm">Keyboard. Narrow screen.<br>Failure and recovery.</p></div>
+</div>
+<!-- END:WORKFLOW_RECIPES -->

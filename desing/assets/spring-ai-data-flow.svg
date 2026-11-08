@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
+  <title id="title">Spring AI turns invoice text into a typed draft, then business code validates it</title>
+  <desc id="description">Invoice text enters ChatClient with an external prompt template. A configured model produces candidate fields. The entity method maps output to InvoiceDraft. The handler validates amounts, currency and required fields before returning a reviewable draft. Provider, parsing and validation failures use the application's error contract.</desc>
+  <defs>
+    <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#132f55}.title{font-size:38px;font-weight:700}.label{font-size:17px;font-weight:700;letter-spacing:1.5px}.heading{font-size:25px;font-weight:700}.body{font-size:22px}.small{font-size:19px}.mono{font-family:Consolas,monospace;font-size:20px}.white{fill:white}</style>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9Z" fill="#245bd6"/></marker>
+  </defs>
+  <rect width="1200" height="760" rx="24" fill="#f8fbff"/>
+  <text x="40" y="64" class="title">An AI result is a draft to validate.</text>
+  <text x="40" y="105" class="body">spring-boot-ai guides the prompt, model call and typed output.</text>
+  <rect x="328" y="144" width="260" height="68" rx="12" fill="#e7f0ff" stroke="#7da3e9"/>
+  <text x="347" y="172" class="small">External prompt template</text>
+  <text x="347" y="198" class="mono">extract-invoice.st</text>
+  <path d="M458 213 V249" fill="none" stroke="#245bd6" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="40" y="262" width="250" height="204" rx="16" fill="white" stroke="#c2d3ed" stroke-width="2"/>
+  <text x="61" y="297" class="label">1 · INPUT</text>
+  <text x="61" y="339" class="heading">Invoice text</text>
+  <text x="61" y="377" class="body">Supplier: Acme</text>
+  <text x="61" y="409" class="body">Total: 240 USD</text>
+  <text x="61" y="445" class="small">Unstructured content</text>
+  <path d="M294 361 H319" fill="none" stroke="#245bd6" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="330" y="262" width="250" height="204" rx="16" fill="#245bd6"/>
+  <text x="351" y="297" class="label white">2 · REQUEST</text>
+  <text x="351" y="339" class="heading white">ChatClient</text>
+  <text x="351" y="377" class="body white">Prompt + variables</text>
+  <text x="351" y="409" class="body white">Configured model</text>
+  <text x="351" y="445" class="small white">Inside the use case</text>
+  <path d="M584 361 H609" fill="none" stroke="#245bd6" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="620" y="262" width="250" height="204" rx="16" fill="white" stroke="#c2d3ed" stroke-width="2"/>
+  <text x="641" y="297" class="label">3 · MODEL</text>
+  <text x="641" y="339" class="heading">Candidate fields</text>
+  <text x="641" y="377" class="body">Hosted or local</text>
+  <text x="641" y="409" class="body">May fail or err</text>
+  <text x="641" y="445" class="small">Spring AI provider</text>
+  <path d="M874 361 H899" fill="none" stroke="#245bd6" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="910" y="262" width="250" height="204" rx="16" fill="#e7f0ff" stroke="#245bd6" stroke-width="2"/>
+  <text x="931" y="297" class="label">4 · MAP OUTPUT</text>
+  <text x="931" y="339" class="heading">InvoiceDraft</text>
+  <text x="931" y="377" class="body">A Java record</text>
+  <text x="931" y="409" class="mono">.entity(...)</text>
+  <text x="931" y="445" class="small">Typed ≠ correct</text>
+  <path d="M1035 467 V494 H600 V520" fill="none" stroke="#245bd6" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="40" y="533" width="1120" height="107" rx="16" fill="#132f55"/>
+  <text x="64" y="574" class="heading white">5 · Validate in your application → return a reviewable draft</text>
+  <text x="64" y="610" class="body white">Check required fields, totals and currency. Save only through the intended business action.</text>
+  <rect x="40" y="662" width="1120" height="60" rx="12" fill="#e7f0ff"/>
+  <text x="61" y="699" class="small">Failure path: provider / parsing / validation error → your error contract → useful UI recovery</text>
+</svg>
