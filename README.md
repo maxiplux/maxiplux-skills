@@ -104,7 +104,11 @@ A **skill** is a folder containing instructions and optional references, scripts
 | **[angular-vertical-slice](./angular-vertical-slice/SKILL.md)** | Organize Angular API access, feature components, state, routes, and tests | “Add an invoices feature using the project's Angular conventions.” |
 | **[design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md)** | Evaluate a web or mobile UI against Rams, Nielsen, Shneiderman, and W3C WAI design principles; plan and apply fixes; re-evaluate | “Run a design principles review of the invoice screen and tell me what to fix first.” |
 
-Design skills live in [custom-design-skills/](./custom-design-skills/), which also explains how to add another one.
+Design skills live in [custom-design-skills/](./custom-design-skills/), which also explains how to add another one. To install the design review skill without cloning this repository, run this inside your application project (see the [full guide](./custom-design-skills/README.md#install)):
+
+```bash
+npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent claude-code --copy --yes
+```
 
 When combining the Spring skills, let VSA guide structure and HTTP boundaries, and the AI references guide prompts and model integration. Preserve the project's agreed framework, migration tool, error contract, and logging policy when examples differ.
 

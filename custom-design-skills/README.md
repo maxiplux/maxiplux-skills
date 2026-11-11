@@ -17,27 +17,19 @@ application until you ask the agent to do something.
 
 ## Quick start
 
-Three steps. Replace `/path/to/my-app` with the project you want to review.
+One line, with no need to clone this repository. Run it **inside the project you want to review**:
 
 ```bash
-git clone https://github.com/maxiplux/maxiplux-skills.git
+npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent claude-code --copy --yes
 ```
 
-```bash
-cd maxiplux-skills
-```
-
-```bash
-bash ./install.sh --project /path/to/my-app --skill design-principles-review-by-max
-```
-
-Then open your coding agent in `/path/to/my-app` and type:
+Then open your coding agent in that project and type:
 
 ```text
 Run a design principles review of the login screen and tell me what to fix first.
 ```
 
-The rest of this page explains each step and every option.
+The rest of this page explains the other ways to install and every option.
 
 ## Install
 
@@ -45,15 +37,76 @@ The rest of this page explains each step and every option.
 
 | Need | Why | Required? |
 | --- | --- | --- |
-| A copy of this repository | The installer copies the skill from it | Yes |
 | Claude Code or Codex | The agent that runs the skill | Yes |
+| Node.js **or** `curl` and `bash` | To install with one line, without cloning | For the one-line install |
+| A copy of this repository | Only if you install from a clone | No |
 | Node.js and [Playwright](https://playwright.dev/) | Only for `capture.mjs`, which opens a web page in a browser to collect evidence | No |
 | Python 3 | Only for `contrast.py`, which measures color contrast | No |
 
 Without Node or Python the skill still works. It reviews from your source code and screenshots, and
 says in its report what it could not check.
 
-### Step 1. Get the repository
+### Option A. One line, without cloning (recommended)
+
+Run the command **inside your application project**. It downloads the skill from GitHub and copies
+it into the project. It works the same in a macOS or Linux terminal, Git Bash and Windows
+PowerShell. It needs Node.js.
+
+For Claude Code:
+
+```bash
+npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent claude-code --copy --yes
+```
+
+For Codex:
+
+```bash
+npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent codex --copy --yes
+```
+
+For every project on this computer, add `--global`:
+
+```bash
+npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent claude-code --copy --yes --global
+```
+
+You should see:
+
+```text
+Installed 1 skill
+  ✓ design-principles-review-by-max (copied)
+    → ./.claude/skills/design-principles-review-by-max
+```
+
+What each part of the command means:
+
+| Part | Meaning |
+| --- | --- |
+| `npx skills add` | Runs the [Skills CLI](https://github.com/vercel-labs/skills) without installing it. |
+| `maxiplux/maxiplux-skills` | The GitHub repository to download the skill from. |
+| `--skill design-principles-review-by-max` | The skill to install. Without it, the CLI offers every skill in the repository. |
+| `--agent claude-code` | The agent to install for. Use `codex` for Codex. |
+| `--copy` | Copies the files into your project. Without it, the CLI creates links. |
+| `--yes` | Does not ask questions. |
+| `--global` | Installs for all your projects, not only this one. |
+
+The command also creates `skills-lock.json` in your project. It records where the skill came from.
+You can commit it or delete it.
+
+**No Node.js?** This line does the same with `curl` and `bash` (macOS, Linux, Git Bash). It
+downloads the repository to a temporary folder and runs its installer:
+
+```bash
+curl -fsSL https://codeload.github.com/maxiplux/maxiplux-skills/tar.gz/refs/heads/main | tar -xz -C /tmp && bash /tmp/maxiplux-skills-main/install.sh --project . --skill design-principles-review-by-max
+```
+
+Now go to [Check that it worked](#check-that-it-worked).
+
+### Option B. From a clone of this repository
+
+Use this when you already have the repository, or when you want the PowerShell installer.
+
+#### Step 1. Get the repository
 
 ```bash
 git clone https://github.com/maxiplux/maxiplux-skills.git
@@ -63,20 +116,20 @@ git clone https://github.com/maxiplux/maxiplux-skills.git
 cd maxiplux-skills
 ```
 
-Run every install command below from this `maxiplux-skills` folder.
+Run every command in Option B from this `maxiplux-skills` folder.
 
-### Step 2. Choose where to install
+#### Step 2. Choose where to install
 
 | Scope | Use it when | The skill is copied to |
 | --- | --- | --- |
 | **Project** | You want the skill in one application | `<your-project>/.claude/skills/design-principles-review-by-max/` |
 | **Personal** | You want the skill in every project on this computer | `~/.claude/skills/design-principles-review-by-max/` |
 
-### Step 3. Run one installer
+#### Step 3. Run the installer
 
 Pick the one that matches your system.
 
-#### macOS, Linux, or Git Bash on Windows
+**macOS, Linux, or Git Bash on Windows**
 
 Install into one project:
 
@@ -96,7 +149,7 @@ You should see:
 Installed design-principles-review-by-max -> /path/to/my-app/.claude/skills/design-principles-review-by-max
 ```
 
-#### Windows PowerShell
+**Windows PowerShell**
 
 Install into one project:
 
@@ -110,18 +163,7 @@ Install for all your projects:
 .\install.ps1 -Personal -Skill design-principles-review-by-max
 ```
 
-#### Codex (Skills CLI)
-
-Run this from **your application project**, not from this repository. Replace the path with the
-place where you cloned `maxiplux-skills`. It needs Node.js.
-
-```bash
-npx skills add /path/to/maxiplux-skills/custom-design-skills --skill design-principles-review-by-max --agent codex --copy
-```
-
-The skill is copied to `<your-project>/.agents/skills/design-principles-review-by-max/`.
-
-#### By hand
+**By hand**
 
 Copy the **whole** folder `custom-design-skills/design-principles-review-by-max/` (with its
 `references/`, `assets/` and `scripts/` folders) to one of these places:
@@ -131,7 +173,9 @@ Copy the **whole** folder `custom-design-skills/design-principles-review-by-max/
 | Claude Code | `<project>/.claude/skills/` | `~/.claude/skills/` |
 | Codex | `<project>/.agents/skills/` | `~/.agents/skills/` |
 
-### Installer options
+#### Installer options
+
+These are the options of `install.sh` and `install.ps1` (Option B).
 
 | `install.sh` | `install.ps1` | What it does |
 | --- | --- | --- |
@@ -142,7 +186,7 @@ Copy the **whole** folder `custom-design-skills/design-principles-review-by-max/
 | `--help` | `-Help` | Shows the usage text. |
 | *(neither `--project` nor `--personal`)* | *(neither)* | The installer asks you where to install. |
 
-### Step 4. Check that it worked
+### Check that it worked
 
 1. Confirm the folder exists and contains `SKILL.md`:
 
@@ -164,7 +208,8 @@ Copy the **whole** folder `custom-design-skills/design-principles-review-by-max/
 
 ### Update or remove
 
-To update, pull the latest version of this repository and install again with `--force`:
+**Update.** If you used the one-line install, run the same line again. It replaces the installed
+copy with the latest version. If you installed from a clone, pull and install again with `--force`:
 
 ```bash
 git pull
@@ -174,7 +219,13 @@ git pull
 bash ./install.sh --project /path/to/my-app --skill design-principles-review-by-max --force
 ```
 
-To remove the skill, delete the installed folder. Your application code is not affected.
+**Remove.** Your application code is not affected. With the Skills CLI, from your project:
+
+```bash
+npx skills remove design-principles-review-by-max --yes
+```
+
+Or delete the installed folder:
 
 ```bash
 rm -rf /path/to/my-app/.claude/skills/design-principles-review-by-max
@@ -344,8 +395,9 @@ conformance audit.
 ## Helper scripts
 
 The agent runs these for you during a review. You can also run them yourself. The examples assume
-the skill is installed in your project; from this repository, use
-`custom-design-skills/design-principles-review-by-max/scripts/` instead.
+the skill is installed in your project for Claude Code (for Codex the folder is `.agents/skills/`);
+from a clone of this repository, use `custom-design-skills/design-principles-review-by-max/scripts/`
+instead.
 
 ### `capture.mjs`: collect evidence from a running web page
 
@@ -426,9 +478,10 @@ Exit status: `0` passed, `1` below the required ratio, `2` wrong usage or a colo
 
 | Problem | What to do |
 | --- | --- |
-| The agent does not use the skill | Start a new agent session. Check that `SKILL.md` exists in the installed folder ([Step 4](#step-4-check-that-it-worked)). Then name the skill in your request: "Use design-principles-review-by-max to…". |
+| The agent does not use the skill | Start a new agent session. Check that `SKILL.md` exists in the installed folder ([Check that it worked](#check-that-it-worked)). Then name the skill in your request: "Use design-principles-review-by-max to…". |
 | `Skipping …: no such skill` | The name after `--skill` is misspelled. It must be exactly `design-principles-review-by-max`. |
 | `--project requires a PATH` or `--skill requires a NAME` | A value is missing after that option. |
+| `npx: command not found` | Node.js is not installed. Install it, or use the `curl` line in [Option A](#option-a-one-line-without-cloning-recommended). |
 | The installer copied the Spring Boot skills | `--skill design-principles-review-by-max` was left out. Run the command again with it. |
 | `Playwright was not found` | Run `capture.mjs` from a project that has Playwright installed, or install it in that project (`npm install --save-dev playwright`, then `npx playwright install chromium`). Without it, the skill reviews from code and screenshots. |
 | PowerShell refuses to run `install.ps1` | Allow scripts for this session, then run it again: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` |
