@@ -23,7 +23,7 @@ force=0
 
 usage() {
   cat <<EOF
-Install spring-boot-ai and spring-boot-vsa Claude Code skills.
+Install the Claude Code skills in this repository.
 
 Usage:
   $0 --personal [--skill NAME] [--force]
@@ -45,8 +45,16 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --personal)        scope="personal"; shift ;;
-    --project)         scope="project"; project_path="${2:-}"; shift 2 ;;
-    --skill)           skills+=("$2"); shift 2 ;;
+    --project)
+      if [[ $# -lt 2 || "$2" == --* ]]; then
+        echo "--project requires a PATH, e.g. --project /path/to/my-app" >&2; exit 1
+      fi
+      scope="project"; project_path="$2"; shift 2 ;;
+    --skill)
+      if [[ $# -lt 2 || "$2" == --* ]]; then
+        echo "--skill requires a NAME, e.g. --skill design-principles-review-by-max" >&2; exit 1
+      fi
+      skills+=("$2"); shift 2 ;;
     --force)           force=1; shift ;;
     -h|--help)         usage; exit 0 ;;
     *)                 echo "Unknown argument: $1" >&2; usage; exit 1 ;;
