@@ -1,9 +1,11 @@
 ---
 name: design-principles-review-by-max
-description: Evaluate and fix any web or mobile user interface against four sets of design principles — Dieter Rams' 10 principles of good design, Nielsen's 10 usability heuristics, Shneiderman's 8 golden rules, and the W3C WAI accessibility design tips. Three modes — evaluate (scored heuristic evaluation with severity-rated findings, from source code, screenshots and the running app), remediate (approved fix plan, applied and re-verified), and full workflow (evaluate, plan, approve, fix, re-evaluate). Use whenever someone asks to review, audit, critique, score or improve a screen, page, flow, form, component, app or mockup — "review this UI", "is this usable?", "heuristic evaluation", "UX audit", "what's wrong with this screen", "fix the usability issues", "check the accessibility of this design" — on web (HTML/CSS, Angular, React), Flutter, iOS or Android. Trigger even when the ask is casual or names only one framework, and before shipping a user-facing screen.
+description: "Run with /design-principles-review-by-max <mode> [target]. Reviews a web or mobile UI against Rams' 10 principles of good design, Nielsen's 10 usability heuristics, Shneiderman's 8 golden rules and the W3C WAI accessibility design tips, then plans and applies fixes. Modes: evaluate (scored review, never edits code), remediate (fix plan, your approval, fixes, re-check), workflow (evaluate, fix and re-evaluate), help. Web (HTML/CSS, Angular, React), Flutter, iOS and Android."
+argument-hint: "[evaluate|remediate|workflow|help] [target]"
+disable-model-invocation: true
 metadata:
   author: max
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Design principles review
@@ -24,16 +26,86 @@ The sources overlap heavily, so they are not walked one by one. [references/rubr
 merges them into 47 checks grouped by theme, each mapped to every principle it tests. One defect is
 reported once and counted against each principle it breaks.
 
-## Choose the mode
+## Command
 
-| The user wants… | Mode | Changes code? |
+Requested: $ARGUMENTS
+
+This skill runs when the user types its command. Read the line above, then act as follows.
+
+**Agents without slash-command arguments** (Codex, Antigravity): if the `Requested:` line is empty or
+still reads `$ARGUMENTS` literally, take the mode and target from the user's message instead, for
+example "/design-principles-review-by-max evaluate src/app/invoices" or
+"$design-principles-review-by-max evaluate src/app/invoices".
+
+### Mode: the first word
+
+| First word (case does not matter) | Mode | Changes code? |
 | --- | --- | --- |
-| A review, audit, critique, score, or "what's wrong with this" | **Evaluate** | Never |
-| Fixes for issues already found ("fix these", "apply the review") | **Remediate** | After approval |
-| The whole thing ("review and fix", "make this screen good", "run the full workflow") | **Full workflow** | After approval |
+| `evaluate`, `review`, `audit` | [Evaluate](#evaluate-mode) | Never |
+| `remediate`, `fix` | [Remediate](#remediate-mode) | Only after the user approves the plan |
+| `workflow`, `full` | [Full workflow](#full-workflow-mode) | Only after the user approves the plan |
+| `help`, or nothing at all | Print the help text below and stop | No |
+| anything else | Print `Unknown mode "<word>".`, then the help text, and stop | No |
 
-When the ask is unclear, run **Evaluate** and end by offering remediation. Evaluation is safe to
-run unasked; changing someone's UI is not.
+Never guess a mode. An unknown word could be a typo for a mode that changes code.
+
+### Target: everything after the mode
+
+The rest of the line says what to review, in any form, and may be combined:
+
+- a folder or file: `src/app/features/invoices/`, `lib/settings/settings_page.dart`
+- a URL: `http://localhost:4200/invoices`, `https://staging.example.com/pricing`
+- a screen or flow in words, quoted or not: `"checkout flow"`, `signup from landing page to dashboard`
+- screenshots or design exports attached to the message
+- for remediate: a saved report, `design-review/evaluation-2026-11-11.md`
+- context in plain words: the user and their task, the start command, a test login, the platform
+
+If there is no target:
+
+- **evaluate** and **workflow**: ask once what to review and who uses it, then continue.
+- **remediate**: use the latest evaluation in this conversation, else the newest
+  `design-review/evaluation-*.md`, else ask the user to run evaluate first.
+
+### Focus words: narrow the review
+
+Words anywhere in the target that change the scope. Apply each one and say in the report which were
+used.
+
+| Words | Effect |
+| --- | --- |
+| `only accessibility`, `only a11y`, `only wai` | Only theme J and the W checks. Score only W3C WAI. |
+| `only rams`, `only nielsen`, `only shneiderman` | Only checks that map to that framework. Score only that framework. |
+| `mobile` / `desktop` | Web: capture one width only, 320 or 1280. |
+| `quick` | Report the verdict and the top five findings; leave out the full coverage table. Say it is a quick review. |
+| `only severity 3`, `only severity 4` (remediate) | Plan fixes only for findings at that severity or higher. |
+
+### Help text
+
+Print this, adapted to the agent (`/` in Claude Code and Antigravity, `$` in Codex), and do nothing
+else:
+
+```text
+design-principles-review-by-max: review a UI against Rams, Nielsen, Shneiderman and W3C WAI.
+
+Usage:  /design-principles-review-by-max <mode> [target] [focus words]
+
+Modes:
+  evaluate   (review, audit)  Scored review with findings. Never changes code.
+  remediate  (fix)            Fix plan from a review, waits for your approval, then fixes.
+  workflow   (full)           Evaluate, plan, your approval, fix, re-evaluate.
+  help                        This text.
+
+Focus words: only accessibility | only rams | only nielsen | only shneiderman | mobile | desktop | quick
+
+Examples:
+  /design-principles-review-by-max evaluate src/app/features/invoices
+  /design-principles-review-by-max evaluate http://localhost:4200/checkout only accessibility
+  /design-principles-review-by-max remediate design-review/evaluation-2026-11-11.md
+  /design-principles-review-by-max workflow "signup flow" mobile
+  /design-principles-review-by-max evaluate lib/settings quick
+
+— design-principles-review-by-max · by max
+```
 
 ## Evaluate mode
 
@@ -61,6 +133,7 @@ Produces a report. It never edits the product's code.
    0–4, and a concrete fix. Measure contrast with `scripts/contrast.py`; do not estimate it by eye.
 5. **Score** using the rubric's scoring rules: per framework and overall, with coverage stated.
    Follow the rules to the letter, including the verdict caps, so that a second run is comparable.
+   With a framework focus word, score only that framework and give no overall score.
 6. **Report** using [assets/evaluation-report.md](assets/evaluation-report.md). Lead with the
    verdict and the few findings to fix first. Include what works; a review that lists only faults
    tells the team nothing about what to keep.

@@ -7,6 +7,7 @@
 #   ./install.sh --project /path/to/proj       # <proj>/.claude/skills/<skill>/
 #   ./install.sh --skill spring-boot-vsa --personal
 #   ./install.sh --skill design-principles-review-by-max --project /path/to/proj
+#   ./install.sh --skill design-principles-review-by-max --agent antigravity --project /path/to/proj
 #   ./install.sh --personal --force            # overwrite without asking
 #
 set -euo pipefail
@@ -20,19 +21,24 @@ scope=""        # "personal" | "project"
 project_path="" # only used when scope=project
 skills=()       # subset of ALL_SKILLS
 force=0
+agent="claude"  # claude | codex | antigravity
 
 usage() {
   cat <<EOF
 Install the Claude Code skills in this repository.
 
 Usage:
-  $0 --personal [--skill NAME] [--force]
-  $0 --project PATH [--skill NAME] [--force]
+  $0 --personal [--skill NAME] [--agent AGENT] [--force]
+  $0 --project PATH [--skill NAME] [--agent AGENT] [--force]
   $0                    # interactive
 
 Options:
-  --personal            Install to \$HOME/.claude/skills/
-  --project PATH        Install to PATH/.claude/skills/
+  --personal            Install for all your projects (folder depends on --agent).
+  --project PATH        Install into one project (folder depends on --agent).
+  --agent AGENT         The coding agent: claude (default), codex or antigravity.
+                          claude       PATH/.claude/skills/   or  ~/.claude/skills/
+                          codex        PATH/.agents/skills/   or  ~/.agents/skills/
+                          antigravity  PATH/.agents/skills/   or  ~/.gemini/config/skills/
   --skill NAME          Only install the named skill. Repeat for multiple.
                         Default: spring-boot-ai and spring-boot-vsa.
                         Also available: angular-vertical-slice,
@@ -55,6 +61,11 @@ while [[ $# -gt 0 ]]; do
         echo "--skill requires a NAME, e.g. --skill design-principles-review-by-max" >&2; exit 1
       fi
       skills+=("$2"); shift 2 ;;
+    --agent)
+      if [[ $# -lt 2 || "$2" == --* ]]; then
+        echo "--agent requires a NAME: claude, codex or antigravity" >&2; exit 1
+      fi
+      agent="$2"; shift 2 ;;
     --force)           force=1; shift ;;
     -h|--help)         usage; exit 0 ;;
     *)                 echo "Unknown argument: $1" >&2; usage; exit 1 ;;
@@ -76,9 +87,16 @@ if [[ "$scope" == "project" && -z "$project_path" ]]; then
   project_path="${project_path:-.}"
 fi
 
+case "$agent" in
+  claude)      project_dir=".claude/skills";  personal_dir="${HOME}/.claude/skills" ;;
+  codex)       project_dir=".agents/skills";  personal_dir="${HOME}/.agents/skills" ;;
+  antigravity) project_dir=".agents/skills";  personal_dir="${HOME}/.gemini/config/skills" ;;
+  *) echo "Unknown agent '$agent'. Use claude, codex or antigravity." >&2; exit 1 ;;
+esac
+
 case "$scope" in
-  personal) target_root="${HOME}/.claude/skills" ;;
-  project)  target_root="${project_path%/}/.claude/skills" ;;
+  personal) target_root="$personal_dir" ;;
+  project)  target_root="${project_path%/}/${project_dir}" ;;
   *)        echo "Internal error: invalid scope '$scope'" >&2; exit 1 ;;
 esac
 
@@ -116,7 +134,17 @@ for skill in "${skills[@]}"; do
 done
 
 echo
-echo "Done. Open Claude Code in the project and try:"
-echo '  - "scaffold a new payment feature slice"   (triggers spring-boot-vsa)'
-echo '  - "how do I parse this LLM JSON into a Java record"   (triggers spring-boot-ai)'
-echo '  - "run a design principles review of this screen"   (triggers design-principles-review-by-max)'
+case "$agent" in
+  claude)      agent_name="Claude Code"; prefix="/" ;;
+  codex)       agent_name="Codex";       prefix="\$" ;;
+  antigravity) agent_name="Antigravity"; prefix="/" ;;
+esac
+echo "Done. Start a new ${agent_name} session in the project and try:"
+for skill in "${skills[@]}"; do
+  case "$skill" in
+    spring-boot-vsa)        echo '  - "scaffold a new payment feature slice"   (uses spring-boot-vsa)' ;;
+    spring-boot-ai)         echo '  - "how do I parse this LLM JSON into a Java record"   (uses spring-boot-ai)' ;;
+    angular-vertical-slice) echo '  - "add an invoices feature using our Angular conventions"   (uses angular-vertical-slice)' ;;
+    design-principles-review-by-max) echo "  - ${prefix}design-principles-review-by-max help" ;;
+  esac
+done

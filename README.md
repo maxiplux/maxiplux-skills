@@ -16,7 +16,7 @@ The handbook includes a tool chooser, an API-state demo, enlargable illustration
 | Build or improve an application screen | Start with [UI / UX & Design](./desing/ui-ux-design.md); use Impeccable, then review the implementation |
 | Build a public product or company website | Start with Taste; use a visual reference if you need direction |
 | Organize a Spring Boot or Angular feature | Choose one of the [included skills](#skills-in-this-repository) |
-| Evaluate or fix an existing web or mobile screen | Use [design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md) |
+| Evaluate or fix an existing web or mobile screen | Run `/design-principles-review-by-max evaluate <target>` ([guide](./custom-design-skills/README.md)) |
 | Extract fields or summarize text with a model | Read [AI Agents](./desing/ai-agents.md), then use the Spring AI skill |
 | Connect the frontend, model, and backend | Follow the [complete invoice workflow](#one-example-from-screen-to-database) |
 
@@ -102,9 +102,9 @@ A **skill** is a folder containing instructions and optional references, scripts
 | **[spring-boot-vsa](./spring-boot-vsa/SKILL.md)** | Scaffold, audit, or refactor Spring Boot features using API / handler / model boundaries | “Audit the invoice feature and explain the three most important issues.” |
 | **[spring-boot-ai](./spring-boot-ai/SKILL.md)** | Spring AI `ChatClient`, typed output, external prompt templates, and broader Spring Boot patterns | “Extract invoice fields into a validated draft for user review.” |
 | **[angular-vertical-slice](./angular-vertical-slice/SKILL.md)** | Organize Angular API access, feature components, state, routes, and tests | “Add an invoices feature using the project's Angular conventions.” |
-| **[design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md)** | Evaluate a web or mobile UI against Rams, Nielsen, Shneiderman, and W3C WAI design principles; plan and apply fixes; re-evaluate | “Run a design principles review of the invoice screen and tell me what to fix first.” |
+| **[design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md)** | Evaluate a web or mobile UI against Rams, Nielsen, Shneiderman, and W3C WAI design principles; plan and apply fixes; re-evaluate. Works in Claude Code, Codex and Antigravity | `/design-principles-review-by-max evaluate src/app/invoices` |
 
-Design skills live in [custom-design-skills/](./custom-design-skills/), which also explains how to add another one. To install the design review skill without cloning this repository, run this inside your application project (see the [full guide](./custom-design-skills/README.md#install)):
+Design skills live in [custom-design-skills/](./custom-design-skills/), which also explains how to add another one. To install the design review skill without cloning this repository, run this inside your application project; use `--agent codex` or `--agent antigravity` for those agents (see the [full guide](./custom-design-skills/README.md#install) and its [cookbook of commands](./custom-design-skills/README.md#cookbook-ready-to-copy-commands)):
 
 ```bash
 npx skills add maxiplux/maxiplux-skills --skill design-principles-review-by-max --agent claude-code --copy --yes
@@ -150,7 +150,7 @@ bash ./install.sh --project /path/to/my-spring-app --skill spring-boot-vsa
 bash ./install.sh --personal
 ```
 
-Both installers default to the two Spring skills. To install Angular explicitly, use `-Skill angular-vertical-slice` in PowerShell or `--skill angular-vertical-slice` in Bash. To install the design review skill, use `-Skill design-principles-review-by-max` or `--skill design-principles-review-by-max`; the installers find it inside `custom-design-skills/`. `-Force` / `--force` replaces an existing installed copy; omit it to keep the overwrite prompt.
+Both installers default to the two Spring skills. To install Angular explicitly, use `-Skill angular-vertical-slice` in PowerShell or `--skill angular-vertical-slice` in Bash. To install the design review skill, use `-Skill design-principles-review-by-max` or `--skill design-principles-review-by-max`; the installers find it inside `custom-design-skills/`. Add `--agent codex` or `--agent antigravity` (`-Agent` in PowerShell) to install into `.agents/skills/` for those agents. `-Force` / `--force` replaces an existing installed copy; omit it to keep the overwrite prompt.
 
 ### Codex: use the Skills CLI
 
