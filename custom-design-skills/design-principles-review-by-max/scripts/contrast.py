@@ -5,6 +5,7 @@ Part of the design-principles-review-by-max skill. Author: max.
 
 Usage:
     contrast.py FOREGROUND BACKGROUND [--min RATIO]
+    contrast.py --report PATH/report.json      # check every pair captured by capture.mjs
 
 Colors may be written as #rgb, #rrggbb, #rrggbbaa, rgb(r, g, b) or rgba(r, g, b, a).
 A foreground with alpha is blended over the background first. The background must be opaque.
@@ -22,6 +23,7 @@ Thresholds (WCAG 2.x):
     4.5:1  large text, level AAA (1.4.6)
 """
 import argparse
+import json
 import re
 import sys
 
@@ -77,13 +79,68 @@ def contrast_ratio(foreground, background):
     return (lighter + 0.05) / (darker + 0.05)
 
 
+def check_report(path):
+    """Check every color pair in a capture.mjs report. Returns the number of text failures."""
+    with open(path, encoding="utf-8") as handle:
+        report = json.load(handle)
+    failures = 0
+    for width, data in report.get("widths", {}).items():
+        pairs = data.get("colors", [])
+        failed = []
+        for pair in pairs:
+            ratio = contrast_ratio(pair["color"], pair["background"])
+            size = float(pair["fontSize"].rstrip("px"))
+            large = size >= 24 or (size >= 18.66 and int(float(pair["fontWeight"])) >= 700)
+            needed = 3.0 if large else 4.5
+            if ratio < needed:
+                failed.append((ratio, needed, pair))
+        print(f"Width {width}px: {len(pairs)} text color pairs, {len(failed)} below AA")
+        for ratio, needed, pair in sorted(failed, key=lambda item: item[0]):
+            print(f"  FAIL {ratio:.2f}:1 (needs {needed}:1)  {pair['color']} on {pair['background']}  "
+                  f"{pair['fontSize']}/{pair['fontWeight']}  x{pair['count']}  \"{pair['sample']}\"")
+        failures += len(failed)
+
+        # Non-text contrast (1.4.11): candidates only. Confirm on a screenshot before reporting.
+        candidates = []
+        for stop in data.get("focusOrder", []):
+            label = f"#{stop['index']} <{stop['tag']}> \"{stop['name'][:30]}\""
+            # Fields are identified by their boundary. A button with a text label needs none.
+            if stop["tag"] in ("input", "select", "textarea"):
+                edges = [stop["fill"]] + ([stop["border"]] if stop.get("border") else [])
+                best = max(contrast_ratio(edge, stop["surround"]) for edge in edges)
+                if best < 3.0:
+                    candidates.append(f"  CHECK control boundary {best:.2f}:1 (needs 3:1)  {label}")
+            if stop.get("outlineColor"):
+                ratio = contrast_ratio(stop["outlineColor"], stop["surround"])
+                if ratio < 3.0:
+                    candidates.append(f"  CHECK focus outline {ratio:.2f}:1 (needs 3:1)  {label}")
+            if not stop.get("focusChange", True):
+                candidates.append(f"  CHECK no style change on focus  {label}")
+        if candidates:
+            print(f"  {len(candidates)} non-text candidates to confirm on a screenshot:")
+            print("\n".join(candidates))
+    return failures
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="WCAG contrast ratio between two colors.")
-    parser.add_argument("foreground", help="text or graphic color, e.g. '#777'")
-    parser.add_argument("background", help="background color, e.g. '#fff'")
+    parser.add_argument("foreground", nargs="?", help="text or graphic color, e.g. '#777'")
+    parser.add_argument("background", nargs="?", help="background color, e.g. '#fff'")
     parser.add_argument("--min", type=float, dest="minimum", metavar="RATIO",
                         help="exit with status 1 if the ratio is below this value")
+    parser.add_argument("--report", metavar="PATH",
+                        help="check every pair in a report.json written by capture.mjs; "
+                             "exit with status 1 if any text pair is below AA")
     args = parser.parse_args(argv)
+
+    if args.report:
+        try:
+            return 1 if check_report(args.report) else 0
+        except (OSError, ValueError, KeyError) as error:
+            print(f"error: could not read report: {error}", file=sys.stderr)
+            return 2
+    if not args.foreground or not args.background:
+        parser.error("give FOREGROUND and BACKGROUND, or --report PATH")
 
     try:
         ratio = contrast_ratio(args.foreground, args.background)

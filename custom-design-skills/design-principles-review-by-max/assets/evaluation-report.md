@@ -12,7 +12,8 @@
 ## Summary
 
 **Verdict: {{Strong / Sound, with issues to fix / Needs work / Poor}}** · Overall score
-**{{n}}/100** · {{n}} of 38 principles assessed
+**{{n}}/100** · {{n}} of 38 principles assessed · {{n}} findings: {{a}} severity 4, {{b}} severity 3,
+{{c}} severity 2, {{d}} severity 1
 
 {{Two or three sentences: what works, what most needs fixing, and what could not be checked.}}
 
@@ -24,7 +25,8 @@
 | W3C WAI: designing for accessibility | {{n}} | {{n}}/10 | {{a / b / c / d}} |
 
 A finding that breaks principles in more than one framework is counted in each row. Scores
-summarize the findings below and are meant for comparing runs on the same UI.
+summarize the findings below and are meant for comparing runs on the same UI. {{If a verdict cap
+applied, say so: "The score alone reads Strong; an open severity-3 finding caps the verdict."}}
 
 ## Fix first
 
@@ -43,7 +45,7 @@ summarize the findings below and are meant for comparing runs on the same UI.
 | Severity | {{0–4}}: {{one-line reason}} |
 | Rubric check | {{e.g. E3}} |
 | Principles | {{e.g. N9, S5, W6}} |
-| Location | {{file:line, or screen and element}} |
+| Location | {{file:line, or screen and element; add the viewport width if it matters}} |
 | Evidence | {{what was observed and how}} |
 | Fix | {{the concrete change}} |
 
@@ -53,19 +55,19 @@ summarize the findings below and are meant for comparing runs on the same UI.
 
 ## Coverage
 
-| Theme | Checks assessed | Not assessed, and why |
-| --- | --- | --- |
-| A. Purpose and focus | {{…}} | {{…}} |
-| B. Clarity | {{…}} | {{…}} |
-| C. Consistency | {{…}} | {{…}} |
-| D. Feedback and status | {{…}} | {{…}} |
-| E. Error prevention and recovery | {{…}} | {{…}} |
-| F. Control and freedom | {{…}} | {{…}} |
-| G. Memory and efficiency | {{…}} | {{…}} |
-| H. Honesty and restraint | {{…}} | {{…}} |
-| I. Visual quality and craft | {{…}} | {{…}} |
-| J. Accessibility | {{…}} | {{…}} |
-| K. Sustainability and help | {{…}} | {{…}} |
+| Theme | Met | Findings | Not assessed, and why | Not applicable, and why |
+| --- | --- | --- | --- | --- |
+| A. Purpose and focus | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| B. Clarity | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| C. Consistency | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| D. Feedback and status | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| E. Error prevention and recovery | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| F. Control and freedom | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| G. Memory and efficiency | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| H. Honesty and restraint | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| I. Visual quality and craft | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| J. Accessibility | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
+| K. Sustainability and help | {{check IDs}} | {{check IDs}} | {{…}} | {{…}} |
 
 Principles not assessed: {{framework IDs, or "none"}}
 

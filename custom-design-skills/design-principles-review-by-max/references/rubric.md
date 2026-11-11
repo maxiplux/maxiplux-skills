@@ -12,8 +12,16 @@ Framework IDs: `R1`–`R10` Rams (`rams.md`), `N1`–`N10` Nielsen (`nielsen.md`
 Shneiderman (`shneiderman.md`), `W1`–`W10` W3C WAI (`wai-designing.md`).
 
 Evidence column: **C** = source code, **S** = screenshot or design, **L** = live app. It lists the
-sources that can settle the check. If none of them is available, mark the check **not assessed**;
-do not guess.
+sources that can settle the check.
+
+Every check ends with one of four results:
+
+| Result | When |
+| --- | --- |
+| **Met** | Evidence shows the check holds. |
+| **Finding** | Evidence shows a defect. Record it as described below. |
+| **Not assessed** | The check applies, but no available evidence source could settle it. Do not guess. |
+| **Not applicable** | The UI has nothing for the check to test: no forms (E1, E3–E5, G4), no destructive actions (E2), no long operations (F3), no data views (D2), no media (J5 captions, J8). |
 
 ## Checks
 
@@ -39,7 +47,7 @@ do not guess.
 | ID | Check | Maps to | Evidence |
 | --- | --- | --- | --- |
 | C1 | The same thing looks, reads and behaves the same everywhere: terminology, component styles, placement, action sequences. | S1, N4, W3 | S, L, C |
-| C2 | Navigation keeps its naming, style and position across screens, marks the current location, and offers more than one way to find content. | W4, S1, N4 | L, S |
+| C2 | Navigation keeps its naming, style and position across screens and viewport sizes, and offers more than one way to find content. | W4, S1, N4 | L, S |
 | C3 | Platform and industry conventions are followed (see the platform reference for mobile). | N4, S1 | S, L, C |
 | C4 | Visual values come from shared tokens and components, not one-off values. | R7, R8, S1 | C |
 
@@ -126,7 +134,7 @@ meet it), **impact** (how hard it is to get past), and **persistence** (once, or
 
 | Rating | Meaning | Typical example |
 | --- | --- | --- |
-| 0 | Not a problem. Recorded only to show the check was made. | A deliberate, documented deviation. |
+| 0 | Not a problem. Something that looks like a defect and, on inspection, is not. List it only when a reader would otherwise raise it. It never affects the score. | A long page that a reader might call bloated, where the length is the documented purpose. |
 | 1 | Cosmetic. Fix if time allows. | Uneven padding between two cards. |
 | 2 | Minor. Low priority. | A vague label that people work out after a moment. |
 | 3 | Major. High priority. | An error message with no way to recover; a form that loses input. |
@@ -147,17 +155,28 @@ record it once and list the locations.
 | Field | Content |
 | --- | --- |
 | ID | `F-01`, `F-02`, … in order of discovery. IDs stay stable across remediation and re-evaluation. |
-| Check | The rubric ID, e.g. `E3`. |
-| Principles | Every framework item broken, e.g. `N9, S5, W6`. |
-| Location | `file:line` for code; screen and element for screenshots and live UI. |
+| Check | One rubric ID, e.g. `E3`. |
+| Principles | Exactly the "Maps to" list of that check, e.g. `N9, S5, W6`. No more and no fewer, so that two reviewers score the same finding the same way. |
+| Location | `file:line` for code; screen and element for screenshots and live UI. Add the viewport width when the defect exists at only one. |
 | Evidence | What was observed, and how (code read, screenshot, measured ratio, keyboard walk). |
 | Severity | 0–4, with a one-line reason. |
 | Fix | A concrete change, not "improve the error handling". |
 
+When a defect fits more than one check, choose one by these rules, in order, and name the other
+check in the Evidence field:
+
+1. A measured accessibility threshold (contrast ratio, target size, missing label or alternative)
+   goes to its **J** check.
+2. Otherwise the check whose wording names the defect most specifically. A weak "you are here"
+   marker is D4, not C2. A missing error message is E3, not D1.
+3. If still tied, the check that comes first in this file.
+
 Do not record:
 
 - **A documented exception.** If a deviation carries a comment or decision record explaining it,
-  it is a decision, not a defect. Flag it only if the reasoning is wrong, and say why.
+  it is a decision, not a defect, and it is not a finding at any severity. Mention it under "What
+  works" or in the coverage notes if a reader would otherwise raise it. Flag it only if the
+  reasoning is wrong, and say why.
 - **What a linter, type checker or compiler already reports.**
 - **Preferences.** Every finding needs an observation and its effect on the user.
 
@@ -169,15 +188,17 @@ measurement; the findings are the result. Never report a score without the findi
 1. For each framework item (`R1`…`W10`), take the **highest severity among open findings** that
    cite it, and convert:
 
-   | Worst open severity | none | 1 | 2 | 3 | 4 |
+   | Worst open severity | none or 0 | 1 | 2 | 3 | 4 |
    | --- | --- | --- | --- | --- | --- |
    | Item score | 100 | 85 | 60 | 30 | 0 |
 
-2. An item whose checks were all **not assessed** is left out of the average and listed in the
-   report under "Not assessed".
-3. **Framework score** = mean of its assessed item scores, rounded to a whole number.
-4. **Overall score** = mean of the four framework scores, rounded.
-5. Verdict:
+2. An item is **assessed** when at least one check that maps to it ended as met or finding. An item
+   whose checks were all not assessed or not applicable is left out of the average and listed in
+   the report under "Principles not assessed".
+3. **Framework score** = mean of its assessed item scores.
+4. **Overall score** = mean of the four framework scores, taken before rounding.
+5. Round only for display, to a whole number, halves up (91.5 → 92).
+6. Verdict, from the rounded overall score:
 
    | Overall | Verdict |
    | --- | --- |
@@ -186,7 +207,15 @@ measurement; the findings are the result. Never report a score without the findi
    | 50–74 | Needs work |
    | below 50 | Poor |
 
-   Any open severity-4 finding caps the verdict at **Needs work**, whatever the number.
+   Two caps apply whatever the number, because one serious defect touches few of the 38 items and
+   barely moves the mean:
+
+   - any open **severity-3** finding caps the verdict at **Sound, with issues to fix**;
+   - any open **severity-4** finding caps it at **Needs work**.
 
 State coverage beside the score: how many of the 38 framework items were assessed. A high score on
 partial evidence is not a high score.
+
+The score counts each item once, at its worst severity, so five minor findings on one principle
+weigh the same as one. That is deliberate: the number shows how many principles are in trouble and
+how badly. The count of findings by severity, reported beside it, shows how much work there is.

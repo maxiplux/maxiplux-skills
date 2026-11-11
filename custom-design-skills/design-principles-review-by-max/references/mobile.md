@@ -2,6 +2,9 @@
 
 Author of this reference: max · Part of `design-principles-review-by-max`
 
+This file is for **native and Flutter apps**. A web page or web app viewed on a phone is reviewed as
+web: see `evidence.md`, and use the WCAG target sizes in the table below.
+
 The rubric applies to mobile apps unchanged. This file says what each theme means on a phone or
 tablet, whatever the framework. For Flutter add `flutter.md`; for SwiftUI, UIKit, Compose or
 Android XML add `native-ios-android.md`.

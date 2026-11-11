@@ -45,18 +45,22 @@ Produces a report. It never edits the product's code.
    screens.
 2. **Collect evidence** following [references/evidence.md](references/evidence.md). Use every
    source available: source code, screenshots or designs, and the running app. Each one is blind to
-   something, so record which you had. For mobile, also read
-   [references/mobile.md](references/mobile.md) and the platform file:
+   something, so record which you had. For a web UI that can run, `scripts/capture.mjs` gathers
+   screenshots, focus order and colors at phone and desktop widths. For a native or Flutter app,
+   also read [references/mobile.md](references/mobile.md) and the platform file:
    [references/flutter.md](references/flutter.md) or
-   [references/native-ios-android.md](references/native-ios-android.md).
+   [references/native-ios-android.md](references/native-ios-android.md). A web page viewed on a
+   phone is still web.
 3. **Walk the rubric.** Go through every check in [references/rubric.md](references/rubric.md).
-   Open a framework reference when you need the detail of a principle. For each check decide: met,
-   finding, or **not assessed** (no evidence source could settle it). Never guess a result to fill
-   a gap; an honest "not assessed" is worth more than a confident wrong answer.
-4. **Record findings** in the rubric's format: stable ID (`F-01`…), rubric check, every principle
-   broken, location (`file:line`, or screen and element), evidence, severity 0–4, and a concrete
-   fix. Measure contrast with `scripts/contrast.py`; do not estimate it by eye.
+   Open a framework reference when you need the detail of a principle. For each check decide: **met**,
+   **finding**, **not assessed** (it applies, but no evidence source could settle it), or **not
+   applicable** (the UI has nothing for it to test). Never guess a result to fill a gap; an honest
+   "not assessed" is worth more than a confident wrong answer.
+4. **Record findings** in the rubric's format: stable ID (`F-01`…), one rubric check, the
+   principles that check maps to, location (`file:line`, or screen and element), evidence, severity
+   0–4, and a concrete fix. Measure contrast with `scripts/contrast.py`; do not estimate it by eye.
 5. **Score** using the rubric's scoring rules: per framework and overall, with coverage stated.
+   Follow the rules to the letter, including the verdict caps, so that a second run is comparable.
 6. **Report** using [assets/evaluation-report.md](assets/evaluation-report.md). Lead with the
    verdict and the few findings to fix first. Include what works; a review that lists only faults
    tells the team nothing about what to keep.
@@ -141,7 +145,7 @@ project, unless the user wants them kept.
 | File | Use it when |
 | --- | --- |
 | [references/rubric.md](references/rubric.md) | Always. The checks, severity scale, finding format and scoring. |
-| [references/evidence.md](references/evidence.md) | Collecting evidence from code, screenshots and the live app, including the Playwright capture script. |
+| [references/evidence.md](references/evidence.md) | Collecting evidence from code, screenshots and the live app, and reading the capture script's output. |
 | [references/rams.md](references/rams.md), [nielsen.md](references/nielsen.md), [shneiderman.md](references/shneiderman.md), [wai-designing.md](references/wai-designing.md) | You need the meaning, checks or typical violations of a specific principle. |
 | [references/remediation.md](references/remediation.md) | Planning and applying fixes on the web. |
 | [references/mobile.md](references/mobile.md) | Any mobile UI. |
@@ -149,4 +153,5 @@ project, unless the user wants them kept.
 | [references/native-ios-android.md](references/native-ios-android.md) | SwiftUI, UIKit, Jetpack Compose or Android XML. |
 | [assets/evaluation-report.md](assets/evaluation-report.md) | Writing an evaluation, a re-evaluation or the final report. |
 | [assets/remediation-plan.md](assets/remediation-plan.md) | Writing the fix plan and recording its result. |
-| [scripts/contrast.py](scripts/contrast.py) | Measuring a color pair: `python3 scripts/contrast.py '#777' '#fff'`. |
+| [scripts/capture.mjs](scripts/capture.mjs) | A web UI can run: `node scripts/capture.mjs <url> <out-dir> [--scope <selector>]`. Needs Playwright; installs nothing. |
+| [scripts/contrast.py](scripts/contrast.py) | Measuring a color pair: `python3 scripts/contrast.py '#777' '#fff'`, or every captured pair: `--report <out-dir>/report.json`. |

@@ -25,6 +25,9 @@ Before collecting anything, write down:
   screens: closure, reversal and error recovery only show up across steps.
 - **The user and their main task** for each screen. Every check is judged against it.
 - **What is out of scope** (third-party widgets, legacy screens) so their absence is explicit.
+- **Viewports**. For web, review at phone width (320) and desktop (1280) unless told otherwise. A
+  defect that exists at only one width is still a finding: put the width in its Location, and rate
+  severity for the people who use that width.
 
 If the user gave none of this and it cannot be read from the project, ask once, briefly.
 
@@ -80,134 +83,64 @@ drive it with Playwright if it is available in the environment. Do not install a
 Playwright into the user's project just for the review; if it is missing, say so and fall back to
 code and screenshots.
 
-The script below collects most of what the rubric needs in one pass: screenshots at three widths, a
-horizontal-overflow check at 320px, the keyboard focus order with whether each stop has a visible
-indicator, text colors for contrast measurement, and basic semantics. Save it outside the project
-(a scratch directory) and run it **from the project directory**, so it finds the project's own
-Playwright: `node /path/to/capture.mjs <url> <output-dir>`.
+`scripts/capture.mjs` collects most of what the rubric needs in one pass. At each viewport width
+(320 and 1280 by default) it takes a screenshot, checks for horizontal overflow, walks the keyboard
+focus order, and records every text color with the background behind it. It also records the page's
+headings, landmarks, unlabeled inputs and images without alternatives.
 
-```js
-// capture.mjs: evidence capture for design-principles-review-by-max
-import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync } from 'node:fs';
-
-// Resolve Playwright from the directory the script is run in, then from a global install.
-const { chromium } = createRequire(`${process.cwd()}/`)('playwright');
-
-const [url, out = 'evidence'] = process.argv.slice(2);
-mkdirSync(out, { recursive: true });
-const browser = await chromium.launch();
-const report = { url, viewports: {}, focusOrder: [], colors: [], semantics: {} };
-
-for (const [name, width, height] of [['mobile', 320, 640], ['tablet', 768, 1024], ['desktop', 1280, 800]]) {
-  const page = await browser.newPage({ viewport: { width, height } });
-  await page.goto(url, { waitUntil: 'networkidle' });
-  await page.screenshot({ path: `${out}/${name}.png`, fullPage: true });
-  report.viewports[name] = await page.evaluate(() => ({
-    horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-  }));
-  await page.close();
-}
-
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-await page.goto(url, { waitUntil: 'networkidle' });
-
-// Keyboard walk: Tab through the page and record each stop.
-for (let i = 0; i < 200; i++) {
-  await page.keyboard.press('Tab');
-  const stop = await page.evaluate(() => {
-    const el = document.activeElement;
-    if (!el || el === document.body || el.dataset.reviewSeen) return null; // done, or wrapped around
-    el.dataset.reviewSeen = '1';
-    const cs = getComputedStyle(el);
-    const name = (el.getAttribute('aria-label') || el.innerText || el.getAttribute('title') || el.getAttribute('alt') || '').trim().slice(0, 60);
-    return {
-      tag: el.tagName.toLowerCase(), role: el.getAttribute('role'), name,
-      outline: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`,
-      boxShadow: cs.boxShadow,
-      // Some designs draw the indicator on a wrapper (:focus-within), so look a few levels up.
-      indicatorOnAncestor: (() => {
-        for (let n = el.parentElement, i = 0; n && i < 3; n = n.parentElement, i++) {
-          const p = getComputedStyle(n);
-          if (p.outlineStyle !== 'none' || p.boxShadow !== 'none') return true;
-        }
-        return false;
-      })(),
-      width: Math.round(el.getBoundingClientRect().width),
-      height: Math.round(el.getBoundingClientRect().height),
-    };
-  });
-  if (!stop) break;
-  report.focusOrder.push(stop);
-}
-
-// Text colors, resolved to opaque sRGB so they can be passed straight to contrast.py.
-report.colors = await page.evaluate(() => {
-  const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-  const toRgba = (css) => { // any CSS color (oklab, color-mix, named…) -> [r, g, b, a]
-    ctx.clearRect(0, 0, 1, 1);
-    ctx.fillStyle = css;
-    ctx.fillRect(0, 0, 1, 1);
-    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-    return [r, g, b, a / 255];
-  };
-  const over = (top, under) => top.slice(0, 3).map((c, i) => Math.round(top[3] * c + (1 - top[3]) * under[i]));
-  const backgroundOf = (el) => { // composite every background layer from the page up to the element
-    const layers = [];
-    for (let n = el; n; n = n.parentElement) layers.unshift(toRgba(getComputedStyle(n).backgroundColor));
-    return layers.reduce((under, layer) => over(layer, under), [255, 255, 255]);
-  };
-  const rgb = (c) => `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-  const seen = new Map();
-  for (const el of document.querySelectorAll('body *')) {
-    const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-    if (!hasText || !el.getClientRects().length) continue;
-    const cs = getComputedStyle(el);
-    const text = toRgba(cs.color);
-    if (text[3] === 0 || cs.visibility === 'hidden') continue;
-    const bg = backgroundOf(el);
-    const key = `${rgb(over(text, bg))}|${rgb(bg)}|${cs.fontSize}|${cs.fontWeight}`;
-    if (!seen.has(key)) seen.set(key, { color: rgb(over(text, bg)), background: rgb(bg), fontSize: cs.fontSize, fontWeight: cs.fontWeight, sample: el.innerText.trim().slice(0, 40), count: 0 });
-    seen.get(key).count++;
-  }
-  return [...seen.values()];
-});
-
-report.semantics = await page.evaluate(() => ({
-  title: document.title,
-  lang: document.documentElement.lang || null,
-  headings: [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => `${h.tagName} ${h.innerText.trim().slice(0, 50)}`),
-  landmarks: [...document.querySelectorAll('header,nav,main,footer,aside,[role]')].map((e) => e.getAttribute('role') || e.tagName.toLowerCase()),
-  imagesWithoutAlt: [...document.querySelectorAll('img:not([alt])')].length,
-  inputsWithoutLabel: [...document.querySelectorAll('input:not([type=hidden]),select,textarea')].filter((i) => !i.labels?.length && !i.getAttribute('aria-label') && !i.getAttribute('aria-labelledby')).length,
-  autoplayMedia: [...document.querySelectorAll('video[autoplay],audio[autoplay]')].length,
-}));
-
-writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
-await browser.close();
-console.log(`Wrote ${out}/report.json and screenshots`);
+```bash
+node <skill-dir>/scripts/capture.mjs <url> <output-dir>
+node <skill-dir>/scripts/capture.mjs <url> <output-dir> --scope "main form" --widths 320,768,1280
+python3 <skill-dir>/scripts/contrast.py --report <output-dir>/report.json
 ```
 
-Reading the output:
+- Write the output to a scratch directory, not into the project.
+- The script looks for Playwright in the current directory, beside itself, and in the global npm
+  root. If the project depends on Playwright, run the command from the project root.
+- **Scope long pages.** On a page with hundreds of controls, pass `--scope <css selector>` for each
+  section under review. The focus walk, colors and headings are then limited to that element, and
+  a second screenshot shows it. Without a scope the walk stops after `--max-stops` (150) stops.
+- Screenshots are of the viewport, never the full page: full-page images of long pages are too
+  large to read. To see another part of the page, scope to it, or scroll and capture it yourself.
 
-- `focusOrder`: an empty list on a page with controls is a J3 finding. A stop with
-  `outline: none …`, `boxShadow: none` and `indicatorOnAncestor: false` is a **candidate** J3/B2
-  finding, not a finding yet: some designs show focus with a border or background change the script
-  does not capture. Focus that element and take a screenshot before reporting it.
+Reading `report.json` (`widths.<width>` holds the per-viewport results):
+
+- `horizontalOverflow: true` at 320 is a J7 finding. It reports the page as a whole; a table or
+  code block that scrolls inside its own container is not overflow, and one that pushes content
+  off-screen without a scroll container is. Check wide elements on the screenshot.
+- `focusWalk.truncated: true` means the walk hit the limit before the end of the page. Say so in
+  the coverage notes, or re-run with a scope.
+- `focusOrder`: an empty list on a page with controls is a J3 finding. Each stop has
+  `focusChange`: whether any style on the element or its three nearest ancestors differs between
+  the focused and resting states. `focusChange: false` is a **candidate** J3/B2 finding, not a
+  finding yet, because an indicator drawn with a pseudo-element is not detected. Focus that element
+  and take a screenshot before reporting it. `focusChange: true` says something changes, not that
+  the change is visible enough: `outlineColor` against `surround` should reach 3:1.
+- `width` / `height` under 24px on a stop is a J9 candidate. Links inside a sentence are exempt
+  from the target-size minimum; standalone links, buttons and icons are not.
+- A stop with an empty `name` is a J4/J5 candidate: check its accessible name in code.
 - `colors`: each entry is a text color and the background behind it, already resolved to opaque
-  `rgb()`. Feed each pair to `scripts/contrast.py`. Background images and gradients are not seen
-  (the nearest solid color is reported), and text inside closed panels is measured in its hidden
-  state, so check those on the screenshot.
-- `viewports.mobile.horizontalOverflow: true` is a J7 finding.
-- `width` / `height` under 24px on a focus stop is a J9 candidate. Links inside a sentence are
-  exempt from the target-size minimum; standalone links, buttons and icons are not.
-- A focus stop with an empty `name` is a J4/J5 candidate: check its accessible name in code.
+  `rgb()`. `contrast.py --report` checks them all against the AA thresholds and lists the failures.
+  Background images and gradients are not seen (the nearest solid color is reported), and text
+  inside closed panels is measured in its hidden state, so check those on the screenshot.
+- `contrast.py --report` also lists non-text candidates: form-field boundaries and focus outlines
+  under 3:1. These need a look at the screenshot before they become findings.
+- Things the script does not measure: contrast of icons and of state indicators such as a selected
+  tab or current nav item (J1, J2), anything behind hover, and content that appears only after an
+  interaction. Measure those by hand: read the two colors from code or the page and run
+  `contrast.py`.
+- Elements that exist at only one width (a phone menu, a desktop sidebar) appear only in that
+  width's results. Compare the two `focusOrder` lists to find navigation that disappears at a
+  width with nothing to replace it (C2).
 
 The script loads one URL. Flows need you to drive them: fill the form wrongly and submit (E1–E5),
 complete it (D3), go back mid-flow (F1), cancel (F3), throttle or block the API to see loading and
 error states (D2), and emulate `prefers-reduced-motion` (J8). Capture a screenshot at each step and
 record what happened.
+
+**Web pages at phone width are still web.** Judge them with this file and the WCAG target size
+(24 × 24 CSS px minimum, 44 × 44 recommended for primary controls). The mobile references are for
+native and Flutter apps.
 
 **Mobile.** Run on a simulator or emulator when the toolchain is present, and use the platform's
 own inspection tools listed in `flutter.md` and `native-ios-android.md`. If the app cannot be run
@@ -216,6 +149,7 @@ assessed.
 
 ## 5. Keep an evidence log
 
-For each rubric check, note: assessed or not, the source used, and the finding IDs raised. The log
-becomes the "Coverage" section of the report, and it is what lets a later re-evaluation repeat the
-same checks the same way.
+For each rubric check, note its result (met, finding, not assessed, or not applicable), the source
+used, and the finding IDs raised. Keep the log with the evidence files. The report's "Coverage"
+table summarizes it by theme, and the log is what lets a later re-evaluation repeat the same checks
+the same way.
