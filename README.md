@@ -2,7 +2,7 @@
 
 **Build understandable screens, useful AI features, and maintainable applications.**
 
-Three reusable coding-agent skills and an illustrated handbook called **Design without guessing**. Start with a task, choose the guidance you need, and check the result. You do not need a design background to follow the handbook; the code examples use Spring Boot and Angular.
+Four reusable coding-agent skills and an illustrated handbook called **Design without guessing**. Start with a task, choose the guidance you need, and check the result. You do not need a design background to follow the handbook; the code examples use Spring Boot and Angular.
 
 **[Read the interactive handbook →](https://maxiplux.github.io/maxiplux-skills-handbook/)** · [Download the offline HTML](https://maxiplux.github.io/maxiplux-skills-handbook/desing/guide-lines.html) · [Read the Markdown chapters](./desing/guide-lines)
 
@@ -16,6 +16,7 @@ The handbook includes a tool chooser, an API-state demo, enlargable illustration
 | Build or improve an application screen | Start with [UI / UX & Design](./desing/ui-ux-design.md); use Impeccable, then review the implementation |
 | Build a public product or company website | Start with Taste; use a visual reference if you need direction |
 | Organize a Spring Boot or Angular feature | Choose one of the [included skills](#skills-in-this-repository) |
+| Evaluate or fix an existing web or mobile screen | Use [design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md) |
 | Extract fields or summarize text with a model | Read [AI Agents](./desing/ai-agents.md), then use the Spring AI skill |
 | Connect the frontend, model, and backend | Follow the [complete invoice workflow](#one-example-from-screen-to-database) |
 
@@ -101,6 +102,9 @@ A **skill** is a folder containing instructions and optional references, scripts
 | **[spring-boot-vsa](./spring-boot-vsa/SKILL.md)** | Scaffold, audit, or refactor Spring Boot features using API / handler / model boundaries | “Audit the invoice feature and explain the three most important issues.” |
 | **[spring-boot-ai](./spring-boot-ai/SKILL.md)** | Spring AI `ChatClient`, typed output, external prompt templates, and broader Spring Boot patterns | “Extract invoice fields into a validated draft for user review.” |
 | **[angular-vertical-slice](./angular-vertical-slice/SKILL.md)** | Organize Angular API access, feature components, state, routes, and tests | “Add an invoices feature using the project's Angular conventions.” |
+| **[design-principles-review-by-max](./custom-design-skills/design-principles-review-by-max/SKILL.md)** | Evaluate a web or mobile UI against Rams, Nielsen, Shneiderman, and W3C WAI design principles; plan and apply fixes; re-evaluate | “Run a design principles review of the invoice screen and tell me what to fix first.” |
+
+Design skills live in [custom-design-skills/](./custom-design-skills/), which also explains how to add another one.
 
 When combining the Spring skills, let VSA guide structure and HTTP boundaries, and the AI references guide prompts and model integration. Preserve the project's agreed framework, migration tool, error contract, and logging policy when examples differ.
 
@@ -142,7 +146,7 @@ bash ./install.sh --project /path/to/my-spring-app --skill spring-boot-vsa
 bash ./install.sh --personal
 ```
 
-Both installers default to the two Spring skills. To install Angular explicitly, use `-Skill angular-vertical-slice` in PowerShell or `--skill angular-vertical-slice` in Bash. `-Force` / `--force` replaces an existing installed copy; omit it to keep the overwrite prompt.
+Both installers default to the two Spring skills. To install Angular explicitly, use `-Skill angular-vertical-slice` in PowerShell or `--skill angular-vertical-slice` in Bash. To install the design review skill, use `-Skill design-principles-review-by-max` or `--skill design-principles-review-by-max`; the installers find it inside `custom-design-skills/`. `-Force` / `--force` replaces an existing installed copy; omit it to keep the overwrite prompt.
 
 ### Codex: use the Skills CLI
 
@@ -245,6 +249,7 @@ This regenerates the [offline HTML](./desing/guide-lines.html), prepares a compl
 | [spring-boot-ai/](./spring-boot-ai/) | AI skill and Spring references |
 | [spring-boot-vsa/](./spring-boot-vsa/) | Architecture skill, examples, Python scaffolding, and templates |
 | [angular-vertical-slice/](./angular-vertical-slice/) | Angular skill, references, and scaffolding |
+| [custom-design-skills/](./custom-design-skills/) | Design skills, starting with the design principles review skill |
 | [desing/](./desing/) | Three handbook chapters, illustrations, and generated HTML |
 | [desing/handbook/](./desing/handbook/) | HTML shell, styles, diagrams, and build scripts |
 | [install.ps1](./install.ps1) / [install.sh](./install.sh) | Claude Code installers |

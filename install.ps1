@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-    Install the spring-boot-ai and spring-boot-vsa Claude Code skills.
+    Install the Claude Code skills in this repository.
+    Default: spring-boot-ai and spring-boot-vsa. Other skills are installed by name.
 
 .EXAMPLE
     .\install.ps1 -Personal
     .\install.ps1 -Project C:\code\my-spring-app
     .\install.ps1 -Personal -Skill spring-boot-vsa -Force
+    .\install.ps1 -Project C:\code\my-app -Skill design-principles-review-by-max
 #>
 [CmdletBinding(DefaultParameterSetName = 'Interactive')]
 param(
@@ -25,6 +27,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $ScriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $AllSkills   = @('spring-boot-ai', 'spring-boot-vsa')
+# Folders that hold skills: the repository root and each skill collection.
+$SkillRoots  = @($ScriptDir, (Join-Path $ScriptDir 'custom-design-skills'))
 
 if ($Help) {
     Get-Help $MyInvocation.MyCommand.Path -Full
@@ -68,11 +72,18 @@ if (-not $Skill -or $Skill.Count -eq 0) {
 New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
 
 foreach ($name in $Skill) {
-    $src  = Join-Path $ScriptDir $name
+    $src = $null
+    foreach ($root in $SkillRoots) {
+        $candidate = Join-Path $root $name
+        if (Test-Path -LiteralPath (Join-Path $candidate 'SKILL.md') -PathType Leaf) {
+            $src = $candidate
+            break
+        }
+    }
     $dest = Join-Path $TargetRoot $name
 
-    if (-not (Test-Path -LiteralPath $src -PathType Container)) {
-        Write-Warning "Skipping ${name}: source dir not found at $src"
+    if ($null -eq $src) {
+        Write-Warning "Skipping ${name}: no such skill in $ScriptDir or its custom-design-skills folder"
         continue
     }
 
@@ -92,6 +103,7 @@ foreach ($name in $Skill) {
 }
 
 Write-Host ""
-Write-Host "Done. Open Claude Code in any Spring Boot project and try:"
+Write-Host "Done. Open Claude Code in the project and try:"
 Write-Host '  - "scaffold a new payment feature slice"   (triggers spring-boot-vsa)'
 Write-Host '  - "how do I parse this LLM JSON into a Java record"   (triggers spring-boot-ai)'
+Write-Host '  - "run a design principles review of this screen"   (triggers design-principles-review-by-max)'
