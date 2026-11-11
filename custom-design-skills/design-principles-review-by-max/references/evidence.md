@@ -119,8 +119,8 @@ Reading `report.json` (`widths.<width>` holds the per-viewport results):
 - `width` / `height` under 24px on a stop is a J9 candidate. Links inside a sentence are exempt
   from the target-size minimum; standalone links, buttons and icons are not.
 - A stop with an empty `name` is a J4/J5 candidate: check its accessible name in code.
-- `colors`: each entry is a text color and the background behind it, already resolved to opaque
-  `rgb()`. `contrast.py --report` checks them all against the AA thresholds and lists the failures.
+- `colors`: each entry is a text color as rendered (alpha and CSS `opacity` applied, SVG text read
+  from its `fill`) and the background behind it, both resolved to opaque `rgb()`. `contrast.py --report` checks them all against the AA thresholds and lists the failures.
   Background images and gradients are not seen (the nearest solid color is reported), and text
   inside closed panels is measured in its hidden state, so check those on the screenshot.
 - `contrast.py --report` also lists non-text candidates: form-field boundaries and focus outlines

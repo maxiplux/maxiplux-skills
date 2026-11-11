@@ -79,6 +79,14 @@ def contrast_ratio(foreground, background):
     return (lighter + 0.05) / (darker + 0.05)
 
 
+def font_weight(value):
+    """CSS font-weight as a number. Browsers report numbers; accept the keywords as well."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 700.0 if str(value).strip().lower() in ("bold", "bolder") else 400.0
+
+
 def check_report(path):
     """Check every color pair in a capture.mjs report. Returns the number of text failures."""
     with open(path, encoding="utf-8") as handle:
@@ -90,7 +98,7 @@ def check_report(path):
         for pair in pairs:
             ratio = contrast_ratio(pair["color"], pair["background"])
             size = float(pair["fontSize"].rstrip("px"))
-            large = size >= 24 or (size >= 18.66 and int(float(pair["fontWeight"])) >= 700)
+            large = size >= 24 or (size >= 18.66 and font_weight(pair["fontWeight"]) >= 700)
             needed = 3.0 if large else 4.5
             if ratio < needed:
                 failed.append((ratio, needed, pair))
