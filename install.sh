@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 #
-# Install the spring-boot-ai and spring-boot-vsa Claude Code skills.
+# Install the Claude Code skills in this repository.
+# Default: spring-boot-ai and spring-boot-vsa. Other skills are installed by name.
 #
 #   ./install.sh --personal                    # ~/.claude/skills/<skill>/
 #   ./install.sh --project /path/to/proj       # <proj>/.claude/skills/<skill>/
 #   ./install.sh --skill spring-boot-vsa --personal
+#   ./install.sh --skill design-principles-review-by-max --project /path/to/proj
 #   ./install.sh --personal --force            # overwrite without asking
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ALL_SKILLS=(spring-boot-ai spring-boot-vsa)
+# Folders that hold skills: the repository root and each skill collection.
+SKILL_ROOTS=("${SCRIPT_DIR}" "${SCRIPT_DIR}/custom-design-skills")
 
 scope=""        # "personal" | "project"
 project_path="" # only used when scope=project
@@ -29,8 +33,10 @@ Usage:
 Options:
   --personal            Install to \$HOME/.claude/skills/
   --project PATH        Install to PATH/.claude/skills/
-  --skill NAME          Only install one skill (spring-boot-ai|spring-boot-vsa).
-                        Repeat for multiple. Default: both.
+  --skill NAME          Only install the named skill. Repeat for multiple.
+                        Default: spring-boot-ai and spring-boot-vsa.
+                        Also available: angular-vertical-slice,
+                        design-principles-review-by-max.
   --force               Overwrite existing target dirs without prompting.
   -h, --help            Show this help.
 EOF
@@ -75,11 +81,17 @@ fi
 mkdir -p "$target_root"
 
 for skill in "${skills[@]}"; do
-  src="${SCRIPT_DIR}/${skill}"
+  src=""
+  for root in "${SKILL_ROOTS[@]}"; do
+    if [[ -f "${root}/${skill}/SKILL.md" ]]; then
+      src="${root}/${skill}"
+      break
+    fi
+  done
   dest="${target_root}/${skill}"
 
-  if [[ ! -d "$src" ]]; then
-    echo "Skipping ${skill}: source dir not found at ${src}" >&2
+  if [[ -z "$src" ]]; then
+    echo "Skipping ${skill}: no such skill in ${SCRIPT_DIR} or ${SCRIPT_DIR}/custom-design-skills" >&2
     continue
   fi
 
@@ -96,6 +108,7 @@ for skill in "${skills[@]}"; do
 done
 
 echo
-echo "Done. Open Claude Code in any Spring Boot project and try:"
+echo "Done. Open Claude Code in the project and try:"
 echo '  - "scaffold a new payment feature slice"   (triggers spring-boot-vsa)'
 echo '  - "how do I parse this LLM JSON into a Java record"   (triggers spring-boot-ai)'
+echo '  - "run a design principles review of this screen"   (triggers design-principles-review-by-max)'
