@@ -8,6 +8,13 @@
     .\install.ps1 -Project C:\code\my-spring-app
     .\install.ps1 -Personal -Skill spring-boot-vsa -Force
     .\install.ps1 -Project C:\code\my-app -Skill design-principles-review-by-max
+    .\install.ps1 -Project C:\code\my-app -Skill design-principles-review-by-max -Agent antigravity
+
+.PARAMETER Agent
+    The coding agent: claude (default), codex or antigravity.
+      claude       <project>\.claude\skills   or  ~\.claude\skills
+      codex        <project>\.agents\skills   or  ~\.agents\skills
+      antigravity  <project>\.agents\skills   or  ~\.gemini\config\skills
 #>
 [CmdletBinding(DefaultParameterSetName = 'Interactive')]
 param(
@@ -18,6 +25,9 @@ param(
     [string]$Project,
 
     [string[]]$Skill,
+
+    [ValidateSet('claude', 'codex', 'antigravity')]
+    [string]$Agent = 'claude',
 
     [switch]$Force,
 
@@ -51,9 +61,13 @@ if ($PSCmdlet.ParameterSetName -eq 'Interactive') {
     }
 }
 
+# Folder per agent, relative to the project or to the home folder
+$ProjectDir  = @{ claude = '.claude\skills'; codex = '.agents\skills'; antigravity = '.agents\skills' }[$Agent]
+$PersonalDir = @{ claude = '.claude\skills'; codex = '.agents\skills'; antigravity = '.gemini\config\skills' }[$Agent]
+
 # Resolve target root
 if ($Personal) {
-    $TargetRoot = Join-Path $env:USERPROFILE '.claude\skills'
+    $TargetRoot = Join-Path $env:USERPROFILE $PersonalDir
 }
 else {
     $resolvedProject = (Resolve-Path -LiteralPath $Project -ErrorAction SilentlyContinue)
@@ -61,7 +75,7 @@ else {
         New-Item -ItemType Directory -Path $Project -Force | Out-Null
         $resolvedProject = (Resolve-Path -LiteralPath $Project)
     }
-    $TargetRoot = Join-Path $resolvedProject.Path '.claude\skills'
+    $TargetRoot = Join-Path $resolvedProject.Path $ProjectDir
 }
 
 # Resolve which skills to install
@@ -103,7 +117,14 @@ foreach ($name in $Skill) {
 }
 
 Write-Host ""
-Write-Host "Done. Open Claude Code in the project and try:"
-Write-Host '  - "scaffold a new payment feature slice"   (triggers spring-boot-vsa)'
-Write-Host '  - "how do I parse this LLM JSON into a Java record"   (triggers spring-boot-ai)'
-Write-Host '  - "run a design principles review of this screen"   (triggers design-principles-review-by-max)'
+$AgentName = @{ claude = 'Claude Code'; codex = 'Codex'; antigravity = 'Antigravity' }[$Agent]
+$Prefix    = @{ claude = '/'; codex = '$'; antigravity = '/' }[$Agent]
+Write-Host "Done. Start a new $AgentName session in the project and try:"
+foreach ($name in $Skill) {
+    switch ($name) {
+        'spring-boot-vsa'        { Write-Host '  - "scaffold a new payment feature slice"   (uses spring-boot-vsa)' }
+        'spring-boot-ai'         { Write-Host '  - "how do I parse this LLM JSON into a Java record"   (uses spring-boot-ai)' }
+        'angular-vertical-slice' { Write-Host '  - "add an invoices feature using our Angular conventions"   (uses angular-vertical-slice)' }
+        'design-principles-review-by-max' { Write-Host "  - ${Prefix}design-principles-review-by-max help" }
+    }
+}
